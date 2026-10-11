@@ -9,7 +9,8 @@
 </head>
 
 <body>
-
+    <button onclick="getPenguins(5)">Get Penguins</button>
+    <p>Will show in console</p>
 
     <script>
         let SUPABASE_URL = "https://decwucuwqnzrxzbxxifu.supabase.co";
@@ -18,7 +19,7 @@
 
 
         async function getPenguins(rows) {
-            let result = await db.rpc('get_clubs_bad', {
+            let result = await db.rpc('get_some_rls_penguins', {
                 row_limit: rows
             });
 
@@ -43,7 +44,7 @@
         }
 
 
-        getPenguins(9);
+
 
     </script>
 </body>
