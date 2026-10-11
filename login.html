@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Login Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg: #0e1016;
+      --panel: #161922;
+      --panel-2: #1d212c;
+      --border: #272c38;
+
+      --text: #e7e9ef;
+      --muted: #969db0;
+
+      --accent: #3ecf8e;
+      --blue: #7cc4ff;
+
+      --warn: #ffc457;
+      --danger: #ff7b7b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #10241c;
+      border: 1px solid #1f4a37;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 26px;
+      letter-spacing: -.6px;
+      margin: 0 0 6px;
+      font-weight: 750;
+    }
+
+    .sub {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 11px 13px;
+      font: inherit;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+
+    input::placeholder {
+      color: #5f6675;
+    }
+
+    input:focus {
+      outline: 2px solid #1f4a37;
+      outline-offset: 1px;
+      border-color: #2f6b4f;
+    }
+
+    button {
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 11px 14px;
+    }
+
+    button.primary {
+      width: 100%;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #06231a;
+    }
+
+    button:hover {
+      border-color: #3a4152;
+    }
+
+    button.primary:hover {
+      border-color: var(--accent);
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: progress;
+    }
+
+    .status {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 18px;
+      min-height: 22px;
+    }
+
+    .pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .pill.ok {
+      color: var(--accent);
+      border-color: #1f4a37;
+      background: #10241c;
+    }
+
+    .pill.bad {
+      color: var(--danger);
+      border-color: #5a262a;
+      background: #241416;
+    }
+
+    .pill.warn {
+      color: var(--warn);
+      border-color: #4a3a1a;
+      background: #241d0f;
+    }
+
+    .switch {
+      margin: 18px 0 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
+    .link {
+      background: none;
+      border: 0;
+      padding: 0;
+      color: var(--blue);
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    .link:hover {
+      border: 0;
+    }
+
+    /* signed-in view */
+    .who {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 18px 0;
+      font-size: 14px;
+    }
+
+    .who .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .who .row+.row {
+      margin-top: 8px;
+    }
+
+    .who .k {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .who .v {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12.5px;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .hint {
+      margin: 16px 0 0;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .92em;
+      color: var(--accent);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <div class="kicker">Supabase &middot; Auth</div>
+
+    <!-- ---------- logged out ---------- -->
+    <div id="view-login">
+      <h1 id="title">Log in</h1>
+      <p class="sub" id="subtitle">Email and password. That's the whole page.</p>
+
+      <form id="form" novalidate>
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+
+        <button class="primary" id="submit" type="submit">Log in</button>
+      </form>
+
+      <div class="status">
+        <span class="pill" id="pill">idle</span>
+        <span id="status-text">Not logged in.</span>
+      </div>
+
+      <p class="switch">
+        <span id="switch-text">No account yet?</span>
+        <button class="link" id="mode" type="button">Create one</button>
+      </p>
+    </div>
+
+    <!-- ---------- logged in ---------- -->
+    <div id="view-session" hidden>
+      <h1>You're in 🎉</h1>
+      <p class="sub">Supabase is now remembering this browser.</p>
+
+      <div class="who">
+        <div class="row">
+          <span class="k">Email</span>
+          <span class="v" id="user-email">—</span>
+        </div>
+        <div class="row">
+          <span class="k">User id</span>
+          <span class="v" id="user-id">—</span>
+        </div>
+      </div>
+
+      <button class="primary" id="logout" type="button">Log out</button>
+
+      <p class="hint">
+        That user id is what <code>auth.uid()</code> returns in a policy — the thing you compare
+        against <code>user_id</code> to give people their own rows.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const db = supabase.createClient(
+      "https://decwucuwqnzrxzbxxifu.supabase.co",
+      "sb_publishable_ONnalS_8pdIUH2Qrsz67CA_z4Wco9I2"
+    );
+
+    const form = document.getElementById('form');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const submitBtn = document.getElementById('submit');
+    const modeBtn = document.getElementById('mode');
+    const title = document.getElementById('title');
+    const subtitle = document.getElementById('subtitle');
+    const switchText = document.getElementById('switch-text');
+    const pill = document.getElementById('pill');
+    const statusText = document.getElementById('status-text');
+    const loginView = document.getElementById('view-login');
+    const sessionView = document.getElementById('view-session');
+
+    let mode = 'login';   // or 'signup'
+
+    function setStatus(kind, text) {
+      const labels = { ok: 'in', bad: 'error', warn: 'heads up' };
+      pill.className = 'pill' + (kind ? ' ' + kind : '');
+      pill.textContent = labels[kind] || 'idle';
+      statusText.textContent = text;
+    }
+
+    function busy(isBusy, label) {
+      submitBtn.disabled = isBusy;
+      if (label) submitBtn.textContent = label;
+    }
+
+    /* ---------- the whole demo: three Supabase calls ---------- */
+
+    // 1. who is already logged in? (the session survives a refresh)
+    async function checkSession() {
+      const { data } = await db.auth.getSession();
+      showUser(data.session ? data.session.user : null);
+    }
+
+    // 2. log in, or create an account
+    async function submit() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        setStatus('bad', 'Fill in both boxes.');
+        return;
+      }
+
+      busy(true, mode === 'login' ? 'Logging in...' : 'Creating...');
+      setStatus('', 'Talking to Supabase...');
+
+      console.log(email, " -- ", password);
+
+      const { data, error } = mode === 'login'
+        ? await db.auth.signInWithPassword({ email, password })
+        : await db.auth.signUp({ email, password });
+
+      busy(false, mode === 'login' ? 'Log in' : 'Create account');
+
+      if (error) {
+        setStatus('bad', error.message);          // e.g. "Invalid login credentials"
+        return;
+      }
+
+      if (data.session) {
+        passwordInput.value = '';
+        showUser(data.session.user);
+        return;
+      }
+
+      // Sign-up worked, but this project requires email confirmation first.
+      setStatus('warn', 'Account made! Check your email, click the link, then log in.');
+    }
+
+    // 3. log out
+    async function logOut() {
+      await db.auth.signOut();
+      showUser(null);
+      setStatus('', 'Logged out.');
+    }
+
+    /* ---------- swapping the bits of UI ---------- */
+
+    function showUser(user) {
+      if (user) {
+        document.getElementById('user-email').textContent = user.email;
+        document.getElementById('user-id').textContent = user.id;
+        loginView.hidden = true;
+        sessionView.hidden = false;
+      } else {
+        loginView.hidden = false;
+        sessionView.hidden = true;
+      }
+    }
+
+    function setMode(next) {
+      mode = next;
+      const isLogin = mode === 'login';
+      title.textContent = isLogin ? 'Log in' : 'Create account';
+      subtitle.textContent = isLogin
+        ? "Email and password. That's the whole page."
+        : "Pick an email and a password — then confirm it by email.";
+      passwordInput.autocomplete = isLogin ? 'current-password' : 'new-password';
+      submitBtn.textContent = isLogin ? 'Log in' : 'Create account';
+      switchText.textContent = isLogin ? 'No account yet?' : 'Already have one?';
+      modeBtn.textContent = isLogin ? 'Create one' : 'Log in';
+      setStatus('', isLogin ? 'Not logged in.' : 'New accounts must confirm their email.');
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); submit(); });
+    modeBtn.addEventListener('click', () => setMode(mode === 'login' ? 'signup' : 'login'));
+    document.getElementById('logout').addEventListener('click', logOut);
+
+    checkSession();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+</head>
+
+<body>
+
+
+    <script>
+        let SUPABASE_URL = "https://decwucuwqnzrxzbxxifu.supabase.co";
+        let SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ONnalS_8pdIUH2Qrsz67CA_z4Wco9I2";
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+
+        async function getPenguins(rows) {
+            let result = await db.rpc('get_clubs_bad', {
+                row_limit: rows
+            });
+
+            let data = result.data;
+            let error = result.error;
+
+            if (error != null) {
+                console.log("Oh dear");
+                return;
+            }
+
+            if (data) {
+                updateDisplay(data);
+            }
+
+        }
+
+        function updateDisplay(data) {
+            data.forEach((element, i) => {
+                console.log(i, element);
+            });
+        }
+
+
+        getPenguins(9);
+
+    </script>
+</body>
+
+</html>

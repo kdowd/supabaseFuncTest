@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+
+    <style>
+        body {
+            background-color: antiquewhite;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+
+            font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+
+            border: 1px solid dashed;
+            border-radius: 10px;
+
+            padding: 11px 13px;
+            font: inherit;
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        input::placeholder {
+            color: #5f6675;
+        }
+
+        input:focus {
+            outline: 2px solid #1f4a37;
+            outline-offset: 1px;
+            border-color: #2f6b4f;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div>
+        <form id="form" novalidate>
+            <label for="email">Email</label>
+            <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+
+            <button class="primary" id="submit" type="submit">Log in</button>
+
+        </form>
+
+        <button onclick="logOut()">Log Out</button>
+
+
+
+    </div>
+
+
+
+
+
+    <script>
+
+        const db = supabase.createClient(
+            "https://decwucuwqnzrxzbxxifu.supabase.co",
+            "sb_publishable_ONnalS_8pdIUH2Qrsz67CA_z4Wco9I2"
+        );
+
+        async function submit(event) {
+            event.preventDefault();
+
+            const formPointer = document.querySelector('#form');
+
+            const formData = new FormData(formPointer);
+            let email = formPointer.querySelector("#email").value;
+            let password = formPointer.querySelector("#password").value;
+
+
+            email = email.trim();
+            password = password.trim();
+
+
+
+
+            const result = await db.auth.signInWithPassword({ email, password });
+
+            let data = result.data;
+            let error = result.error;
+
+
+
+
+            if (error) {
+                alert("Invalid login credentials");          // e.g. "Invalid login credentials"
+                // return;
+            }
+
+            if (data.session) {
+                console.log(data.session.user);
+                // update UI, user has logged in
+            }
+
+
+        }
+
+        async function logOut() {
+            await db.auth.signOut();
+
+        }
+
+
+
+        const theForm = document.getElementById('form');
+        form.addEventListener('submit', submit);
+    </script>
+
+
+</body>
+
+</html>

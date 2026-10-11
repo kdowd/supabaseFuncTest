@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Policies — 5 things to know</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg: #0e1016;
+      --panel: #161922;
+      --panel-2: #1d212c;
+      --border: #272c38;
+
+      --text: #e7e9ef;
+      --muted: #969db0;
+
+      --accent: #3ecf8e;
+      --blue: #7cc4ff;
+
+      --warn: #ffc457;
+      --danger: #ff7b7b;
+
+      --radius: 12px;
+      --measure: 780px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: var(--measure);
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+
+    /* ---------- hero ---------- */
+
+    .hero {
+      padding: 72px 0 36px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #10241c;
+      border: 1px solid #1f4a37;
+      border-radius: 999px;
+      padding: 5px 12px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: 42px;
+      line-height: 1.12;
+      letter-spacing: -1.2px;
+      margin: 0 0 16px;
+      font-weight: 800;
+    }
+
+    h1 em { font-style: normal; color: var(--accent); }
+
+    .lede {
+      font-size: 18px;
+      color: var(--muted);
+      margin: 0;
+      max-width: 62ch;
+    }
+
+    .count {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 26px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .count b { color: var(--accent); font-size: 20px; line-height: 1; }
+
+    /* ---------- points ---------- */
+
+    .point {
+      display: flex;
+      gap: 18px;
+      padding: 34px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .point:last-of-type { border-bottom: 0; }
+
+    .point .num {
+      flex: 0 0 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #06231a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .point .body { min-width: 0; flex: 1; }
+
+    .sec-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 25px;
+      letter-spacing: -.5px;
+      margin: 0 0 12px;
+      font-weight: 750;
+    }
+
+    p { margin: 0 0 14px; }
+
+    p:last-child { margin-bottom: 0; }
+
+    strong { color: #fff; font-weight: 650; }
+
+    a { color: var(--blue); }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .88em;
+    }
+
+    p code, li code, td code {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: var(--accent);
+    }
+
+    /* ---------- code ---------- */
+
+    .code {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 18px 0;
+      overflow: hidden;
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-2);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 16px 18px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #d7dbe6;
+    }
+
+    .code pre .c { color: #6f7787; }
+    .code pre .k { color: #c084fc; }
+    .code pre .s { color: var(--accent); }
+    .code pre .f { color: var(--blue); }
+
+    .copy {
+      font: inherit;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+
+    .copy:hover { color: var(--text); border-color: #3a4152; }
+
+    /* ---------- callouts ---------- */
+
+    .note, .warn, .danger {
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 20px 0;
+    }
+
+    .note   { background: #131c26; border: 1px solid #24405a; }
+    .warn   { background: #241d0f; border: 1px solid #4a3a1a; }
+    .danger { background: #241416; border: 1px solid #5a262a; }
+
+    .note b, .warn b, .danger b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .note b   { color: var(--blue); }
+    .warn b   { color: var(--warn); }
+    .danger b { color: var(--danger); }
+
+    .note p, .warn p, .danger p { margin: 0; color: #cfd4e0; font-size: 15px; }
+
+    /* ---------- table ---------- */
+
+    .table-scroll { overflow-x: auto; margin: 18px 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 14.5px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    thead th {
+      background: var(--panel-2);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    /* ---------- demo panel ---------- */
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    button.act {
+      font: inherit;
+      font-size: 14px;
+      font-weight: 650;
+      border-radius: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      transition: border-color .15s;
+    }
+
+    button.act:hover { border-color: #3a4152; }
+
+    button.act.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #06231a;
+    }
+
+    button.act:disabled { opacity: .55; cursor: progress; }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      min-height: 22px;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+    }
+
+    .pill.ok   { color: var(--accent); border-color: #1f4a37; background: #10241c; }
+    .pill.bad  { color: var(--danger); border-color: #5a262a; background: #241416; }
+    .pill.warn { color: var(--warn); border-color: #4a3a1a; background: #241d0f; }
+
+    .output {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #cfd4e0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+    }
+
+    ul { margin: 12px 0; padding-left: 20px; color: #cfd4e0; }
+
+    li { margin: 7px 0; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 56px;
+      padding-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    footer p { margin: 0 0 12px; }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 31px; }
+      .hero { padding-top: 48px; }
+      .point { gap: 14px; padding: 28px 0; }
+      .point .num { flex-basis: 28px; height: 28px; font-size: 13px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header class="hero">
+      <div class="kicker">Supabase &middot; Policies</div>
+      <h1>Supabase policies, <em>explained simply</em></h1>
+      <p class="lede">
+        Your publishable key is not a secret — anyone can read it out of your page. So what stops a
+        stranger from downloading every row in your database? Policies. A policy is one rule about
+        who is allowed to see or change which rows.
+      </p>
+      <div class="count"><b>5</b> <span>things to know. That's the whole idea.</span></div>
+    </header>
+
+    <!-- ============ POINT 1 ============ -->
+    <section class="point">
+      <div class="num">1</div>
+      <div class="body">
+        <div class="sec-label">Point 1</div>
+        <h2>A policy is a rule about rows</h2>
+
+        <p>
+          Think of a table as a spreadsheet of rows — one row per student, per club, per penguin.
+          A <strong>policy</strong> is a rule attached to that table that answers one question:
+          <em>for this person, which rows are they allowed to see or change?</em>
+        </p>
+
+        <p>
+          Without policies there are no rules at all, and "no rules" means "help yourself". This
+          project is a live example. You don't need to log in, and you don't need a password — the
+          publishable key from <code>index.html</code> is enough:
+        </p>
+
+        <div class="panel">
+          <div class="controls">
+            <button class="act primary" id="btn-students" type="button">Try to read the students table</button>
+            <button class="act" id="btn-locations" type="button">Try the locations table</button>
+          </div>
+          <div class="status" aria-live="polite">
+            <span class="pill" id="pill">idle</span>
+            <span id="status-text">Nothing has been requested yet.</span>
+          </div>
+          <pre class="output" id="output">// results will show up here</pre>
+        </div>
+
+        <div class="danger">
+          <b>The students table is readable right now</b>
+          <p>
+            Anyone who opens this page and presses that button gets real rows back — no login, no
+            password. The demo deliberately shows only <em>how many</em> rows came back, not the
+            contents, because those contents are real people's names. That is exactly what policies
+            exist to prevent.
+          </p>
+        </div>
+
+        <p>So a policy names three things:</p>
+        <ul>
+          <li><strong>Who</strong> — the role: strangers, logged-in users, or everyone.</li>
+          <li><strong>What</strong> — reading, adding, changing, or deleting.</li>
+          <li><strong>Which rows</strong> — the actual condition, like "only rows where the id is mine".</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ POINT 2 ============ -->
+    <section class="point">
+      <div class="num">2</div>
+      <div class="body">
+        <div class="sec-label">Point 2</div>
+        <h2>Policies do nothing until you switch RLS on</h2>
+
+        <p>
+          Policies live inside a feature called <strong>RLS</strong> — Row Level Security. It's a
+          switch on each table, and here's the trap: <strong>a table with RLS switched off ignores
+          every policy you write.</strong> You can write ten perfect policies and a table with the
+          switch off will still hand out everything.
+        </p>
+
+        <div class="code" data-lang="SQL editor — the switch">
+<pre><code><span class="c">-- this is the switch. Nothing else matters until it's on.</span>
+<span class="k">alter table</span> students <span class="k">enable row level security</span>;</code></pre>
+        </div>
+
+        <p>
+          If you create a table in Supabase's Table Editor, the switch is turned on for you. If you
+          create it by writing SQL, it is <strong>off</strong> by default and you have to turn it on
+          yourself. That gap is where most accidental leaks come from.
+        </p>
+
+        <div class="warn">
+          <b>How to check</b>
+          <p>
+            In the dashboard, open <em>Table Editor</em> and look for the RLS badge next to the
+            table name, or run <code>select relname, relrowsecurity from pg_class where
+            relname = 'students';</code>. If it says <code>false</code>, the table is wide open to
+            anyone holding your publishable key.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POINT 3 ============ -->
+    <section class="point">
+      <div class="num">3</div>
+      <div class="body">
+        <div class="sec-label">Point 3</div>
+        <h2>Once RLS is on, the answer is no</h2>
+
+        <p>
+          This surprises everyone: turning RLS on doesn't protect the rows you care about and leave
+          the rest — it locks <em>everything</em>. With RLS on and no policies written yet, nobody
+          can read anything, not even you from your own web page. Policies are the exceptions you
+          allow back in.
+        </p>
+
+        <p>
+          So the mental model is: <strong>RLS says no to everything, then each policy says yes to
+          one specific thing.</strong> Want people to read but never delete? One read policy, no
+          delete policy. Want everyone to see a public list but only edit their own row? Two
+          policies.
+        </p>
+
+        <div class="note">
+          <b>A blocked read looks exactly like an empty table</b>
+          <p>
+            If a read comes back as <code>200 OK</code> with <code>[]</code>, you genuinely cannot
+            tell from the outside whether the table is empty or a policy just said no. In the panel
+            above, <code>locations</code> returned nothing — and we have no way to know which of
+            those two it was. It's a common source of confusion: the API is silent about refusal.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POINT 4 ============ -->
+    <section class="point">
+      <div class="num">4</div>
+      <div class="body">
+        <div class="sec-label">Point 4</div>
+        <h2>The pattern you'll write over and over</h2>
+
+        <p>
+          Ninety percent of the policies you write will look like this one: <em>you may only touch
+          rows that belong to you.</em> The magic ingredient is <code>auth.uid()</code> — it means
+          "the id of the person who is logged in right now". If nobody is logged in, it's
+          <code>null</code>, and <code>null</code> never equals anybody's id, so strangers get
+          nothing. Automatically.
+        </p>
+
+        <div class="code" data-lang="SQL editor — a policy for your own rows">
+<pre><code><span class="c">-- READING: which existing rows can they see?</span>
+<span class="k">create policy</span> <span class="s">"see your own student row"</span>
+<span class="k">on</span> students
+<span class="k">for select</span>
+<span class="k">to authenticated</span>
+<span class="k">using</span> ( auth.<span class="f">uid</span>() = user_id );   <span class="c">-- user_id is a column on the table</span>
+
+<span class="c">-- ADDING: what must a brand new row look like?</span>
+<span class="k">create policy</span> <span class="s">"add your own student row"</span>
+<span class="k">on</span> students
+<span class="k">for insert</span>
+<span class="k">to authenticated</span>
+<span class="k">with check</span> ( auth.<span class="f">uid</span>() = user_id );</code></pre>
+        </div>
+
+        <p>
+          For this to work, the table needs a column holding the logged-in user's id — usually
+          called <code>user_id</code>, and it has to be the same kind of id that
+          <code>auth.uid()</code> returns. That one column is what ties a row to a person.
+        </p>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Keyword</th>
+                <th>Means</th>
+                <th>Used when</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>using</code></td>
+                <td>Which existing rows they're allowed to touch</td>
+                <td>Reading, changing, deleting</td>
+              </tr>
+              <tr>
+                <td><code>with check</code></td>
+                <td>What a row is allowed to look like afterwards</td>
+                <td>Adding, changing</td>
+              </tr>
+              <tr>
+                <td><code>to anon</code></td>
+                <td>People who are not logged in</td>
+                <td>Public pages, like a menu or a leaderboard</td>
+              </tr>
+              <tr>
+                <td><code>to authenticated</code></td>
+                <td>People who are logged in</td>
+                <td>Almost everything else</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POINT 5 ============ -->
+    <section class="point">
+      <div class="num">5</div>
+      <div class="body">
+        <div class="sec-label">Point 5</div>
+        <h2>Test it as a stranger, not as yourself</h2>
+
+        <p>
+          The classic mistake is testing while logged in as the owner of the database. Everything
+          works, because the owner can do anything — and then a stranger opens your site and sees
+          the lot. Test with the hat of the person you're worried about:
+        </p>
+
+        <ul>
+          <li>Open your page in a <strong>private window</strong> where you're logged out, and see what still appears.</li>
+          <li>Press the button above twice — logged out, then logged in. Right now both give the same answer, which is the problem; once your policies are written they should differ.</li>
+          <li>Look for a policy containing <code>using ( true )</code> — that means "absolutely everyone", so make sure you meant it.</li>
+        </ul>
+
+        <div class="danger">
+          <b>The secret key ignores every policy you write</b>
+          <p>
+            The <code>service_role</code> key — the secret one — walks straight past RLS. That's why
+            it can never go in an HTML page. It belongs only in an Edge Function or on your own
+            server, where visitors can't read it.
+          </p>
+        </div>
+
+        <div class="note">
+          <b>The one-sentence version</b>
+          <p>
+            Switch RLS on, assume it says no to everything, then write a policy for each thing you
+            actually want to allow. If you can't name the rule that lets someone see a row, they
+            shouldn't be seeing it.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Built alongside <code>index.html</code> (the working function demo) and
+        <code>guide.html</code> (how to use Supabase functions) in this folder.
+      </p>
+      <p>
+        Worth acting on: in this project <code>students</code> and <code>penguins</code> currently
+        answer anyone holding the publishable key. Before showing this project to anyone else, turn
+        on RLS and add policies for those two tables.
+      </p>
+    </footer>
+
+  </div>
+
+  <script>
+    /* ---------------- the client (same publishable key as the demo) ---------------- */
+    const db = supabase.createClient(
+      "https://decwucuwqnzrxzbxxifu.supabase.co",
+      "sb_publishable_ONnalS_8pdIUH2Qrsz67CA_z4Wco9I2"
+    );
+
+    const pill = document.getElementById('pill');
+    const statusText = document.getElementById('status-text');
+    const output = document.getElementById('output');
+    const buttons = [...document.querySelectorAll('button.act')];
+
+    function setStatus(kind, text) {
+      const labels = { ok: 'success', bad: 'exposed', warn: 'nothing' };
+      pill.className = 'pill' + (kind ? ' ' + kind : '');
+      pill.textContent = labels[kind] || 'idle';
+      statusText.textContent = text;
+    }
+
+    function busy(isBusy) {
+      buttons.forEach(b => b.disabled = isBusy);
+    }
+
+    /* Read a table exactly as a logged-out visitor would.
+       We never print the row contents — only whether they were handed over. */
+    async function tryTable(table) {
+      busy(true);
+      setStatus('', 'Asking for every row in "' + table + '" with no login...');
+      output.textContent = '// request sent...';
+
+      const { data, error, status } = await db.from(table).select('*');
+
+      busy(false);
+
+      if (error) {
+        setStatus('warn', 'The request was refused: ' + error.message);
+        output.textContent = JSON.stringify(
+          { table: table, http_status: status, error: error.message, rows_returned: 0 }, null, 2
+        );
+        return;
+      }
+
+      const rows = data ? data.length : 0;
+
+      if (rows === 0) {
+        setStatus('warn', 'No rows came back — the table is empty, or a policy said no.');
+        output.textContent = JSON.stringify({
+          table: table,
+          http_status: status,
+          rows_returned: 0,
+          note: 'An empty result and a blocked read look identical from out here.'
+        }, null, 2);
+        return;
+      }
+
+      setStatus('bad', rows + ' row(s) handed to a complete stranger — no login needed.');
+      output.textContent = JSON.stringify({
+        table: table,
+        http_status: status,
+        logged_in: false,
+        rows_returned: rows,
+        contents_shown: 'no — these are real people, so only the count is displayed',
+        note: rows + ' rows were readable by anyone with the publishable key.'
+      }, null, 2);
+    }
+
+    document.getElementById('btn-students').addEventListener('click', () => tryTable('students'));
+    document.getElementById('btn-locations').addEventListener('click', () => tryTable('locations'));
+
+    /* ---------------- copy buttons ---------------- */
+    document.querySelectorAll('.code').forEach(block => {
+      const head = document.createElement('div');
+      head.className = 'code-head';
+
+      const label = document.createElement('span');
+      label.textContent = block.dataset.lang || 'code';
+
+      const btn = document.createElement('button');
+      btn.className = 'copy';
+      btn.type = 'button';
+      btn.textContent = 'Copy';
+
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(block.querySelector('code').innerText);
+          btn.textContent = 'Copied';
+        } catch (e) {
+          btn.textContent = 'Ctrl+C';
+        }
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+      });
+
+      head.append(label, btn);
+      block.prepend(head);
+    });
+  </script>
+</body>
+
+</html>

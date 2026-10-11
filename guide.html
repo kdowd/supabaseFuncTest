@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase Functions — a plain-English guide</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg: #0e1016;
+      --panel: #161922;
+      --panel-2: #1d212c;
+      --border: #272c38;
+
+      --text: #e7e9ef;
+      --muted: #969db0;
+
+      --accent: #3ecf8e;
+      --blue: #7cc4ff;
+
+      --warn: #ffc457;
+      --danger: #ff7b7b;
+
+      --radius: 12px;
+      --measure: 780px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: var(--measure);
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+
+    /* ---------- hero ---------- */
+
+    .hero {
+      padding: 72px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #10241c;
+      border: 1px solid #1f4a37;
+      border-radius: 999px;
+      padding: 5px 12px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: 44px;
+      line-height: 1.1;
+      letter-spacing: -1.2px;
+      margin: 0 0 16px;
+      font-weight: 800;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .lede {
+      font-size: 18px;
+      color: var(--muted);
+      margin: 0;
+      max-width: 62ch;
+    }
+
+    /* ---------- headings ---------- */
+
+    section {
+      margin: 56px 0;
+    }
+
+    .sec-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 28px;
+      letter-spacing: -.6px;
+      margin: 0 0 14px;
+      font-weight: 750;
+    }
+
+    h3 {
+      font-size: 17px;
+      letter-spacing: -.2px;
+      margin: 28px 0 10px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 0 0 16px;
+    }
+
+    a {
+      color: var(--blue);
+    }
+
+    strong {
+      color: #fff;
+      font-weight: 650;
+    }
+
+    /* ---------- toc ---------- */
+
+    .toc {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 26px;
+    }
+
+    .toc-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .toc ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+
+    .toc li {
+      margin: 6px 0;
+    }
+
+    .toc a {
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      text-decoration: underline;
+    }
+
+    /* ---------- inline code ---------- */
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .88em;
+    }
+
+    p code,
+    li code,
+    td code {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: var(--accent);
+    }
+
+    /* ---------- code blocks ---------- */
+
+    .code {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 18px 0;
+      overflow: hidden;
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-2);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 16px 18px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #d7dbe6;
+    }
+
+    .code pre .c {
+      color: #6f7787;
+    }
+
+    .code pre .k {
+      color: #c084fc;
+    }
+
+    .code pre .s {
+      color: var(--accent);
+    }
+
+    .code pre .f {
+      color: var(--blue);
+    }
+
+    .copy {
+      font: inherit;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+
+    .copy:hover {
+      color: var(--text);
+      border-color: #3a4152;
+    }
+
+    /* ---------- callouts ---------- */
+
+    .note,
+    .warn,
+    .danger {
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 20px 0;
+    }
+
+    .note {
+      background: #131c26;
+      border: 1px solid #24405a;
+    }
+
+    .warn {
+      background: #241d0f;
+      border: 1px solid #4a3a1a;
+    }
+
+    .danger {
+      background: #241416;
+      border: 1px solid #5a262a;
+    }
+
+    .note b,
+    .warn b,
+    .danger b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      letter-spacing: .02em;
+    }
+
+    .note b {
+      color: var(--blue);
+    }
+
+    .warn b {
+      color: var(--warn);
+    }
+
+    .danger b {
+      color: var(--danger);
+    }
+
+    .note p,
+    .warn p,
+    .danger p {
+      margin: 0;
+      color: #cfd4e0;
+      font-size: 15px;
+    }
+
+    /* ---------- steps ---------- */
+
+    .step {
+      display: flex;
+      gap: 16px;
+      margin: 30px 0;
+    }
+
+    .step .num {
+      flex: 0 0 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #06231a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .step .body {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .step h3 {
+      margin: 4px 0 6px;
+    }
+
+    .step p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ---------- table ---------- */
+
+    .table-scroll {
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 14.5px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    thead th {
+      background: var(--panel-2);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td:first-child {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ---------- interactive panel ---------- */
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      margin: 24px 0;
+    }
+
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    label {
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    input[type="number"] {
+      width: 84px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    input[type="number"]:focus {
+      outline: 2px solid #1f4a37;
+      outline-offset: 1px;
+    }
+
+    button.act {
+      font: inherit;
+      font-size: 14px;
+      font-weight: 650;
+      border-radius: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      transition: border-color .15s, background .15s;
+    }
+
+    button.act:hover {
+      border-color: #3a4152;
+    }
+
+    button.act.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #06231a;
+    }
+
+    button.act:disabled {
+      opacity: .55;
+      cursor: progress;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      min-height: 22px;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+    }
+
+    .pill.ok {
+      color: var(--accent);
+      border-color: #1f4a37;
+      background: #10241c;
+    }
+
+    .pill.bad {
+      color: var(--danger);
+      border-color: #5a262a;
+      background: #241416;
+    }
+
+    .pill.warn {
+      color: var(--warn);
+      border-color: #4a3a1a;
+      background: #241d0f;
+    }
+
+    .output {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #cfd4e0;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+    }
+
+    /* ---------- checklist ---------- */
+
+    .check {
+      list-style: none;
+      padding: 0;
+      margin: 18px 0;
+    }
+
+    .check li {
+      position: relative;
+      padding-left: 30px;
+      margin: 10px 0;
+      color: #cfd4e0;
+    }
+
+    .check li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 64px;
+      padding-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 32px;
+      }
+
+      .hero {
+        padding-top: 48px;
+      }
+
+      section {
+        margin: 44px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header class="hero">
+      <div class="kicker">Supabase &middot; Functions</div>
+      <h1>Supabase functions, <em>explained simply</em></h1>
+      <p class="lede">
+        A function is just code that lives on Supabase's computers instead of in your visitor's
+        browser. Your page asks a question, the function answers. That's the whole idea — here's
+        how to actually use one.
+      </p>
+    </header>
+
+    <nav class="toc">
+      <div class="toc-title">What's inside</div>
+      <ol>
+        <li><a href="#what">What a function actually is</a></li>
+        <li><a href="#two">The two kinds you'll meet</a></li>
+        <li><a href="#demo">Reading the demo page line by line</a></li>
+        <li><a href="#recipe">The 4-step recipe</a></li>
+        <li><a href="#try">Try it live</a></li>
+        <li><a href="#mistakes">5 mistakes everyone makes</a></li>
+        <li><a href="#edge">Level up: Edge Functions</a></li>
+        <li><a href="#cheatsheet">Cheat sheet</a></li>
+      </ol>
+    </nav>
+
+    <!-- ============ 1 ============ -->
+    <section id="what">
+      <div class="sec-label">Part 1</div>
+      <h2>What a function actually is</h2>
+
+      <p>
+        Imagine you want to know how many clubs are in a database. You have two choices.
+      </p>
+
+      <p>
+        <strong>Option A:</strong> download the entire database into the browser and count them yourself.
+        Slow, and now a stranger can read everything you downloaded.
+      </p>
+
+      <p>
+        <strong>Option B:</strong> send one short message that says "hey, count the clubs for me".
+        Something on the server does the work and sends back just the answer.
+      </p>
+
+      <p>
+        Supabase functions are option B. The code sits on Supabase's side. Your HTML page is only
+        allowed to <em>ask</em>. This matters because:
+      </p>
+
+      <ul>
+        <li>Your visitor never sees the logic, only the result.</li>
+        <li>The work happens next to the data, so it's fast.</li>
+        <li>You write it once and every page on your site can reuse it.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 2 ============ -->
+    <section id="two">
+      <div class="sec-label">Part 2</div>
+      <h2>The two kinds you'll meet</h2>
+
+      <p>
+        People say "Supabase function" for two different things. They are called from the same
+        client, but they are not the same. This is the bit that confuses almost everyone at first,
+        so learn the two names now:
+      </p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Database function (&ldquo;RPC&rdquo;)</th>
+              <th>Edge Function</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>What it is</td>
+              <td>SQL saved inside your database</td>
+              <td>A tiny program on a server</td>
+            </tr>
+            <tr>
+              <td>How you call it</td>
+              <td><code>db.rpc('name')</code></td>
+              <td><code>db.functions.invoke('name')</code></td>
+            </tr>
+            <tr>
+              <td>Good for</td>
+              <td>Asking the database a question</td>
+              <td>Talking to Stripe, OpenAI, sending email</td>
+            </tr>
+            <tr>
+              <td>Where it lives</td>
+              <td>Written in the Supabase SQL editor</td>
+              <td>A folder called <code>supabase/functions/</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <b>The demo page uses the first kind</b>
+        <p>
+          <code>index.html</code> calls <code>db.rpc('get_clubs_bad', ...)</code>. So that function
+          is SQL stored in the database — not a separate server. If you only remember one thing:
+          <strong>rpc = database, functions.invoke = server</strong>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 3 ============ -->
+    <section id="demo">
+      <div class="sec-label">Part 3</div>
+      <h2>Reading the demo page line by line</h2>
+
+      <p>Here is the whole of the working demo, with the boring parts removed:</p>
+
+      <div class="code" data-lang="index.html">
+        <pre><code><span class="c">&lt;!-- 1. Load the Supabase library --&gt;</span>
+&lt;script src=<span class="s">"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"</span>&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  <span class="c">// 2. Which project are we talking to?</span>
+  <span class="k">let</span> SUPABASE_URL = <span class="s">"https://decwucuwqnzrxzbxxifu.supabase.co"</span>;
+  <span class="k">let</span> SUPABASE_PUBLISHABLE_KEY = <span class="s">"sb_publishable_..."</span>;
+
+  <span class="c">// 3. Make a client — your remote control</span>
+  <span class="k">const</span> db = supabase.<span class="f">createClient</span>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+  <span class="c">// 4. Ask the database to run a function</span>
+  <span class="k">async function</span> <span class="f">getPenguins</span>(rows) {
+    <span class="k">let</span> result = <span class="k">await</span> db.<span class="f">rpc</span>(<span class="s">'get_clubs_bad'</span>, {
+      row_limit: rows
+    });
+
+    <span class="c">// 5. The answer has two parts</span>
+    <span class="k">let</span> data = result.data;
+    <span class="k">let</span> error = result.error;
+
+    <span class="c">// 6. Stop if something went wrong</span>
+    <span class="k">if</span> (error != <span class="k">null</span>) {
+      console.<span class="f">log</span>(<span class="s">"Oh dear"</span>);
+      <span class="k">return</span>;
+    }
+
+    <span class="k">if</span> (data) {
+      <span class="f">updateDisplay</span>(data);
+    }
+  }
+
+  <span class="c">// then do something with the rows</span>
+  <span class="k">function</span> <span class="f">updateDisplay</span>(data) {
+    data.<span class="f">forEach</span>((element, i) =&gt; {
+      console.<span class="f">log</span>(i, element);
+    });
+  }
+
+  <span class="f">getPenguins</span>(9);
+&lt;/script&gt;</code></pre>
+      </div>
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <h3>The script tag loads the library</h3>
+          <p>
+            This pulls <code>supabase-js</code> off a CDN, so there is nothing to install and no
+            build step. It must come <em>before</em> your own script, or <code>supabase</code>
+            won't exist yet.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body">
+          <h3>The URL and key say which project</h3>
+          <p>
+            The URL is your project's address. The <strong>publishable key</strong> is a guest pass —
+            it identifies your project to the public and is designed to be visible in a browser.
+            The <strong>secret key</strong> is the master key. It never goes in an HTML file.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <h3><code>createClient</code> builds your remote control</h3>
+          <p>
+            <code>db</code> is the object you'll use for everything: <code>db.rpc()</code> for
+            database functions, <code>db.from()</code> for tables, <code>db.functions.invoke()</code>
+            for Edge Functions.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">4</div>
+        <div class="body">
+          <h3><code>db.rpc()</code> sends the request</h3>
+          <p>
+            <code>rpc</code> means "remote procedure call" — a fancy way of saying "run this
+            function over there for me". The first argument is the function's exact name. The second
+            is an object holding its inputs, so <code>row_limit: 9</code> becomes the function's
+            <code>row_limit</code> value.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">5</div>
+        <div class="body">
+          <h3>The answer comes in two halves</h3>
+          <p>
+            Every call gives you back an object with <code>data</code> and <code>error</code> on
+            it. The demo splits them onto their own lines — <code>let data = result.data</code> and
+            <code>let error = result.error</code> — which is easier to read when you're starting
+            out. Supabase never throws an exception at you; it always hands you both halves every
+            single time.
+          </p>
+          <p>
+            The demo's function is <code>async</code> and uses <code>await</code> because it has to
+            wait for the network. Without <code>await</code> you'd get a pending Promise instead of
+            your rows.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">6</div>
+        <div class="body">
+          <h3>Stop early if something went wrong</h3>
+          <p>
+            This is the safety check, and the demo gets it right. If <code>error</code> isn't
+            <code>null</code>, something broke — <code>return</code> immediately, before anything
+            else touches <code>data</code>. Only when <code>error</code> is <code>null</code> do you
+            carry on to <code>updateDisplay(data)</code>. (The demo logs <code>"Oh dear"</code>
+            here, which is friendly but not much help when something really breaks — Part 6 comes
+            back to that.)
+          </p>
+        </div>
+      </div>
+
+      <div class="note">
+        <b>You'll also see this written in shorthand</b>
+        <p>
+          Supabase's own docs and most tutorials write the same two lines in one:
+          <code>const { data, error } = await db.rpc(...)</code>. That's called destructuring, and
+          it means exactly the same thing as the demo's <code>result.data</code> and
+          <code>result.error</code>. Use whichever you find easier to read — just know they're the
+          same.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 4 ============ -->
+    <section id="recipe">
+      <div class="sec-label">Part 4</div>
+      <h2>The 4-step recipe</h2>
+
+      <p>Any time you call a database function, it's these four lines of thinking:</p>
+
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <h3>Load the library</h3>
+          <p>One script tag in your <code>&lt;head&gt;</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body">
+          <h3>Create the client</h3>
+          <p>URL + publishable key. Do this once, at the top of your script.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <h3>Await the call</h3>
+          <p>Grab <code>data</code> and <code>error</code> out of the result.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">4</div>
+        <div class="body">
+          <h3>Check the error, then use the data</h3>
+          <p>
+            In that order. The demo does this correctly — it stops the moment something is wrong,
+            and only reaches <code>updateDisplay</code> when nothing did.
+          </p>
+        </div>
+      </div>
+
+      <div class="code" data-lang="the shape of every call">
+        <pre><code><span class="c">// the version the demo uses — one clear step at a time</span>
+<span class="k">let</span> result = <span class="k">await</span> db.<span class="f">rpc</span>(<span class="s">'function_name'</span>, {
+  input_name: value       <span class="c">// whatever the function expects</span>
+});
+
+<span class="k">let</span> data = result.data;
+<span class="k">let</span> error = result.error;
+
+<span class="k">if</span> (error != <span class="k">null</span>) {
+  console.<span class="f">log</span>(error.message);   <span class="c">// something broke — stop here</span>
+  <span class="k">return</span>;
+}
+
+<span class="c">// data is now safe to use</span>
+
+<span class="c">// ---- the same thing in shorthand, which you'll see in the docs ----</span>
+<span class="k">const</span> { data, error } = <span class="k">await</span> db.<span class="f">rpc</span>(<span class="s">'function_name'</span>, {
+  input_name: value
+});</code></pre>
+      </div>
+    </section>
+
+    <!-- ============ 5 ============ -->
+    <section id="try">
+      <div class="sec-label">Part 5</div>
+      <h2>Try it live</h2>
+
+      <p>
+        This panel calls the exact same function as the demo page, straight from your browser.
+        Buttons two and three are the interesting ones — they show what a real error looks like, and
+        the one case the demo's <code>if (data)</code> check doesn't catch.
+      </p>
+
+      <div class="panel">
+        <h3>Call <code>get_clubs_bad</code></h3>
+
+        <div class="controls">
+          <label for="limit">Rows</label>
+          <input id="limit" type="number" value="5" min="1" max="100">
+          <button class="act primary" id="btn-call" type="button">Call the function</button>
+          <button class="act" id="btn-missing" type="button">Call a function that doesn't exist</button>
+          <button class="act" id="btn-forgot" type="button">Run the demo's <code>if (data)</code> check</button>
+        </div>
+
+        <div class="status" aria-live="polite">
+          <span class="pill" id="pill">idle</span>
+          <span id="status-text">Nothing has been sent yet.</span>
+        </div>
+
+        <pre class="output" id="output">// the raw response will show up here</pre>
+      </div>
+
+      <div class="note">
+        <b>If you see an empty list, that isn't a bug</b>
+        <p>
+          <code>get_clubs_bad</code> currently returns <code>[]</code> — an empty array. The request
+          worked perfectly, there's just no data in it. But notice what the demo does with that:
+          <code>if (data)</code> is <strong>true</strong> for an empty array, so
+          <code>updateDisplay([])</code> still runs, its <code>forEach</code> loops zero times, and
+          the page just sits there looking broken with no clue why. Press the third button to watch
+          that happen step by step.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 6 ============ -->
+    <section id="mistakes">
+      <div class="sec-label">Part 6</div>
+      <h2>5 mistakes everyone makes</h2>
+
+      <div class="danger">
+        <b>1. Putting the secret key in your HTML</b>
+        <p>
+          Anyone can open your page, press F12, and read your key. The secret key can delete every
+          row you own. If a browser needs it, it's the wrong key — use the publishable key, and do
+          privileged work inside an Edge Function.
+        </p>
+      </div>
+
+      <div class="warn">
+        <b>2. An error message nobody can use</b>
+        <p>
+          The demo's check is in the right place, but <code>console.log("Oh dear")</code> tells you
+          nothing — not what broke, not which line. Log <code>error.message</code> (and
+          <code>error.code</code>) instead, and on a real page show the visitor something they can
+          act on. The other half of this mistake is skipping the check entirely: then
+          <code>data</code> is <code>null</code> and the next line crashes.
+        </p>
+      </div>
+
+      <div class="warn">
+        <b>3. Forgetting <code>await</code></b>
+        <p>
+          Without it you get a <em>Promise</em>, not your rows — so <code>data</code> is
+          <code>undefined</code> and you crash with
+          <code>Cannot read properties of undefined</code>. If a variable isn't what you expect,
+          check the <code>await</code> first.
+        </p>
+      </div>
+
+      <div class="note">
+        <b>4. Thinking <code>if (data)</code> means "there are rows"</b>
+        <p>
+          This is the demo's one real gap. An empty array is <em>truthy</em> in JavaScript, so
+          <code>if (data)</code> is <code>true</code> even when the function returns
+          <code>[]</code>. The code runs, the loop runs zero times, and nothing appears. An empty
+          result is a normal outcome, not an error — so check the length too:
+          <code>if (data &amp;&amp; data.length &gt; 0)</code>.
+        </p>
+      </div>
+
+      <div class="note">
+        <b>5. Typing the function name wrong</b>
+        <p>
+          Names are exact and case-sensitive. If you misspell one you'll get
+          <code>PGRST202 &mdash; Could not find the function</code>. That error is genuinely
+          helpful: it usually even suggests the name you meant.
+        </p>
+      </div>
+
+      <h3>The fixed version</h3>
+      <p>
+        Same function, same easy-to-read style as the demo — it just checks for rows as well as
+        errors, and says something useful when either goes wrong:
+      </p>
+
+      <div class="code" data-lang="the improved version">
+        <pre><code><span class="k">async function</span> <span class="f">loadClubs</span>(limit) {
+  <span class="f">showSpinner</span>();
+
+  <span class="k">let</span> result = <span class="k">await</span> db.<span class="f">rpc</span>(<span class="s">'get_clubs_bad'</span>, {
+    row_limit: limit
+  });
+
+  <span class="k">let</span> data = result.data;
+  <span class="k">let</span> error = result.error;
+
+  <span class="f">hideSpinner</span>();
+
+  <span class="k">if</span> (error != <span class="k">null</span>) {
+    <span class="f">showMessage</span>(<span class="s">'Something went wrong: '</span> + error.message);
+    <span class="k">return</span>;
+  }
+
+  <span class="c">// the check the demo is missing</span>
+  <span class="k">if</span> (data == <span class="k">null</span> || data.length === <span class="s">0</span>) {
+    <span class="f">showMessage</span>(<span class="s">'No clubs to show yet.'</span>);
+    <span class="k">return</span>;
+  }
+
+  <span class="f">render</span>(data);   <span class="c">// safe: we know it has rows</span>
+}</code></pre>
+      </div>
+    </section>
+
+
+
+
+
+    <footer>
+      Built alongside <code>index.html</code> — the working demo in this folder. Open the browser
+      console on that page to watch the function's reply come back.
+    </footer>
+
+  </div>
+
+  <script>
+    /* ---------------- the client, same as the demo ---------------- */
+    const SUPABASE_URL = "https://decwucuwqnzrxzbxxifu.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ONnalS_8pdIUH2Qrsz67CA_z4Wco9I2";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    const pill = document.getElementById('pill');
+    const statusText = document.getElementById('status-text');
+    const output = document.getElementById('output');
+    const limitInput = document.getElementById('limit');
+    const buttons = [...document.querySelectorAll('button.act')];
+
+    function setStatus(kind, text) {
+      const labels = { ok: 'success', bad: 'error', warn: 'warning' };
+      pill.className = 'pill' + (kind ? ' ' + kind : '');
+      pill.textContent = labels[kind] || 'idle';
+      statusText.textContent = text;
+    }
+
+    function show(value) {
+      output.textContent = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+    }
+
+    function busy(isBusy) {
+      buttons.forEach(b => b.disabled = isBusy);
+    }
+
+    /* ---------------- 1. the happy path ---------------- */
+    async function callFunction() {
+      const limit = Math.max(1, Math.min(100, Number(limitInput.value) || 5));
+      busy(true);
+      setStatus('', 'Asking the database for ' + limit + ' row(s)...');
+
+      const { data, error } = await db.rpc('get_clubs_bad', { row_limit: limit });
+
+      busy(false);
+
+      if (error) {
+        setStatus('bad', 'The function failed: ' + error.message);
+        show({ step: 'error', error });
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        setStatus('ok', 'Worked perfectly — but the function returned an empty array.');
+      } else {
+        setStatus('ok', 'Worked. Got ' + data.length + ' row(s) back.');
+      }
+
+      show({ step: 'success', row_count: data ? data.length : 0, data });
+    }
+
+    /* ---------------- 2. what a real error looks like ---------------- */
+    async function callMissingFunction() {
+      busy(true);
+      setStatus('', 'Calling a function that does not exist...');
+
+      const { data, error } = await db.rpc('this_function_does_not_exist', { row_limit: 5 });
+
+      busy(false);
+      setStatus('bad', 'Error ' + (error && error.code ? error.code : '') + ' — this is what a typo looks like.');
+      show({ step: 'error', note: 'data is null here, which is why you must check error first.', data, error });
+    }
+
+    /* ---------------- 3. the demo's own if (data) check ---------------- */
+    async function runDemoCheck() {
+      const limit = Math.max(1, Math.min(100, Number(limitInput.value) || 5));
+      busy(true);
+      setStatus('', "Running the demo page's own checks...");
+
+      // ---- this is the demo's code, copied as-is ----
+      let result = await db.rpc('get_clubs_bad', { row_limit: limit });
+
+      let data = result.data;
+      let error = result.error;
+
+      const trace = [];
+      trace.push('the function returned: ' + JSON.stringify(data));
+      trace.push('error is ' + (error === null ? 'null' : 'not null') + '  →  so the error check passes');
+      trace.push('');
+
+      if (error != null) {
+        trace.push('...and we would stop right here.');
+        busy(false);
+        setStatus('bad', 'This time the function actually failed.');
+        show({ step: "the demo's checks", trace: trace, data: data, error: error });
+        return;
+      }
+
+      trace.push('next check: if (data)  →  ' + Boolean(data) + '   (an empty array counts as true!)');
+      trace.push('');
+
+      let loopRan = 0;
+      if (data) {
+        data.forEach(row => { loopRan++; console.log(row); });   // the demo's exact code
+      }
+
+      trace.push('so updateDisplay() runs, and its forEach body executes ' + loopRan + ' time(s).');
+      trace.push('');
+
+      if (loopRan === 0) {
+        trace.push('Result: no error, no crash, and nothing on the page.');
+        trace.push('The visitor sees a blank screen and has no idea why.');
+      } else {
+        trace.push('Result: rows came back this time, so it looked fine.');
+        trace.push('But the check was luck, not safety — an empty array would still slip through.');
+      }
+
+      busy(false);
+      setStatus('warn', "Nothing crashed — and nothing rendered. This is the demo's blind spot.");
+      show({
+        step: "if (data) is not enough",
+        trace: trace,
+        data: data,
+        error: error,
+        fix: "if (data && data.length > 0) { updateDisplay(data); }"
+      });
+    }
+
+    document.getElementById('btn-call').addEventListener('click', callFunction);
+    document.getElementById('btn-missing').addEventListener('click', callMissingFunction);
+    document.getElementById('btn-forgot').addEventListener('click', runDemoCheck);
+
+    /* ---------------- copy buttons on every code block ---------------- */
+    document.querySelectorAll('.code').forEach(block => {
+      const head = document.createElement('div');
+      head.className = 'code-head';
+
+      const label = document.createElement('span');
+      label.textContent = block.dataset.lang || 'code';
+
+      const btn = document.createElement('button');
+      btn.className = 'copy';
+      btn.type = 'button';
+      btn.textContent = 'Copy';
+
+      btn.addEventListener('click', async () => {
+        const text = block.querySelector('code').innerText;
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = 'Copied';
+        } catch (e) {
+          btn.textContent = 'Ctrl+C';
+        }
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+      });
+
+      head.append(label, btn);
+      block.prepend(head);
+    });
+  </script>
+</body>
+
+</html>
