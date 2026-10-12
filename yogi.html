@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sign-in page</title>
+
+  <style>
+    body {
+      min-height: 100vh;
+      background-color: aliceblue;
+      font-family: monospace;
+    }
+
+    .status {
+      position: fixed;
+      top: 0;
+      right: 0;
+      padding: 8px;
+      color: dodgerblue;
+
+      h4 {
+        margin: 0;
+      }
+    }
+
+    pre {
+      background-color: #f4f4f5;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 1.5em 0;
+      overflow-x: auto;
+      /* Adds a horizontal scrollbar if the code is too wide */
+      max-width: 100%;
+    }
+
+    /* Inline and block code text styling */
+    code {
+      font-family: 'Fira Code', 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+      color: #18181b;
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      word-spacing: normal;
+      word-break: normal;
+      line-height: 1.5;
+      tab-size: 4;
+      /* Ensures consistent indentation spacing */
+    }
+  </style>
+
+  <!-- 1. Fetch the library from a CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+</head>
+
+<body>
+  <h1>Login/Logout</h1>
+
+  <div class="status">
+    <h4>Status: <span>?</span> </h4>
+    <h4 class="email"></h4>
+  </div>
+
+  <section class="sign-in-form" style="width: min-content; padding:2rem; background-color: crimson; margin:auto">
+    <h2>Sign In</h2>
+    <label for="email"> Email </label> <br />
+    <input type="email" autocomplete="on" id="email" class="sign-in" placeholder=" abc@gmail.com" /><span>
+      kdowd10@gmail.com</span>
+    <br /><br />
+
+    <label for="password"> Password </label> <br />
+    <input type="password" id="password" class="sign-in" placeholder=" Enter your password" /><span> 12345678</span>
+    <br /><br />
+
+
+    <input type="submit" id="submit" class="button" onclick="handleSignIn()" />
+    <button onclick="logOut()">Log out</button>
+  </section>
+
+  <section>
+    <pre>1.<code> let result = await db.auth.signInWithPassword({
+      email: userEmail,
+      password: uersPassword
+  });</code></pre>
+  </section>
+
+  <section>
+    <pre>2.<code> await db.auth.signOut();</code></pre>
+  </section>
+
+  <section>
+
+    <pre>3.<code> const res = await db.auth.getSession();</code></pre>
+  </section>
+
+  <section>
+
+    <pre>*<code> You should set-up your SupaBase so that any insert, update or delate operation requires<br /> a login similar to this.</code></pre>
+  </section>
+
+
+
+
+  <script>
+    const supabaseURL = "https://lqwdjtnqmoiiijhbpeos.supabase.co";
+    const supabaseKEY = "sb_publishable_uQt4iEjcbDNc9elLz3PL8g_-a3E6ChV";
+    const db = supabase.createClient(supabaseURL, supabaseKEY);
+
+  </script>
+
+
+  <script>
+    async function handleSignIn() {
+      let userEmail = document.querySelector('#email').value;
+      let uersPassword = document.querySelector('#password').value;
+
+      userEmail = userEmail.trim();
+      uersPassword = uersPassword.trim();
+
+      if (userEmail == '' || uersPassword == '') {
+        console.warn("Insufficent login details");
+        return;
+      }
+
+
+
+      let result = await db.auth.signInWithPassword({
+        email: userEmail,
+        password: uersPassword,
+      });
+
+      // for debug only
+      // let result = await db.auth.signInWithPassword({
+      //   email: "kdowd10@gmail.com",
+      //   password: "12345678",
+      // });
+
+      let data = result.data;
+      let error = result.error;
+
+      if (error) {
+        alert("Invalid login credentials"); // e.g. "Invalid login credentials"
+        return;
+      }
+
+      if (data) {
+        console.log(data);
+        checkSession();
+      }
+
+
+    }
+
+    async function checkSession() {
+      const res = await db.auth.getSession();
+      let ele = document.querySelector(".status span");
+      let emailStatusEle = document.querySelector(".status .email");
+
+      if (res.data.session == null) {
+        ele.textContent = "not logged in";
+        emailStatusEle.textContent = "";
+      } else {
+        ele.textContent = "Logged in";
+        let email = res.data.session?.user?.email || "";
+        emailStatusEle.textContent = email;
+      }
+
+
+      // showUser(data.session ? data.session.user : null);
+    }
+
+    async function logOut() {
+      await db.auth.signOut();
+      checkSession();
+
+    }
+
+    checkSession();
+
+
+  </script>
+</body>
+
+</html>

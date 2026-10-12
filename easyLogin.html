@@ -93,17 +93,17 @@
             const formPointer = document.querySelector('#form');
 
             const formData = new FormData(formPointer);
-            let email = formPointer.querySelector("#email").value;
-            let password = formPointer.querySelector("#password").value;
+            let user_email = formPointer.querySelector("#email").value;
+            let user_password = formPointer.querySelector("#password").value;
 
 
-            email = email.trim();
-            password = password.trim();
+            user_email = user_email.trim();
+            user_password = user_password.trim();
 
 
 
 
-            const result = await db.auth.signInWithPassword({ email, password });
+            const result = await db.auth.signInWithPassword({ email: user_email, password: user_password });
 
             let data = result.data;
             let error = result.error;
