@@ -12,8 +12,6 @@
             background-color: antiquewhite;
             margin: 0;
             min-height: 100vh;
-
-
             font: small monospace, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
@@ -23,10 +21,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: start;
-            margin-top: 2rem;
+            margin-top: 0.66rem;
             ;
 
-            gap: 2rem;
+            gap: 1rem;
         }
 
 
@@ -67,6 +65,32 @@
             background-color: #5f6675;
             color: snow;
         }
+
+        hr {
+            width: 90%;
+            background-color: black;
+        }
+
+        .signup-results ul {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info ul {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px;
+            padding: 0 8px;
+            margin: 0;
+            list-style-type: none;
+
+            p {
+                margin-bottom: 4px;
+                color: crimson;
+            }
+        }
     </style>
 </head>
 
@@ -95,11 +119,31 @@
             </form>
 
         </section>
-
+        <hr />
         <div class="signup-results">
             <span></span>
         </div>
 
+        <hr />
+        <div class="info">
+            <ul>
+                <li>
+                    <p>createClient():</p>const db = supabase.createClient(
+                    SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+                    );
+                </li>
+                <li>
+                    <p>signUp():</p> const result = await db.auth.signUp({ email: user_email, password: user_password
+                    });
+                </li>
+                <li>
+                    <p>signOut()</p>const result = await db.auth.signOut();
+                </li>
+                <li>
+                    <p>is current user in a session:</p>const resultObj = await db.auth.getSession();
+                </li>
+            </ul>
+        </div>
 
     </div>
 
@@ -138,6 +182,7 @@
 
             const result = await db.auth.signUp({ email: user_email, password: user_password });
 
+            // easy debugging, availble in console
             window.currentUserObj = result;
 
             let data = result.data;
@@ -182,7 +227,12 @@
         }
 
         async function isCurrentUserSession() {
-            const { data: { session }, error } = await db.auth.getSession();
+            // const { data: { session }, error } = 
+
+            const resultObj = await db.auth.getSession();
+
+            const session = resultObj.data.session;
+            const error = resultObj.error;
 
             if (session) {
                 console.log('User is logged in:', session.user);
