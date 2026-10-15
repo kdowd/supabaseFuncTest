@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reading data from Supabase — JavaScript examples</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg: #0e1016;
+      --panel: #161922;
+      --panel-2: #1d212c;
+      --border: #272c38;
+
+      --text: #e7e9ef;
+      --muted: #969db0;
+
+      --accent: #3ecf8e;
+      --blue: #7cc4ff;
+
+      --warn: #ffc457;
+      --danger: #ff7b7b;
+
+      --measure: 820px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: var(--measure);
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+
+    /* ---------- hero ---------- */
+
+    .hero {
+      padding: 64px 0 32px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #10241c;
+      border: 1px solid #1f4a37;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 38px;
+      line-height: 1.12;
+      letter-spacing: -1px;
+      margin: 0 0 14px;
+      font-weight: 800;
+    }
+
+    h1 em { font-style: normal; color: var(--accent); }
+
+    .lede { margin: 0; color: var(--muted); font-size: 17px; max-width: 62ch; }
+
+    .sec-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 26px;
+      letter-spacing: -.6px;
+      margin: 0 0 12px;
+      font-weight: 750;
+    }
+
+    section { margin: 52px 0; }
+
+    p { margin: 0 0 15px; }
+
+    strong { color: #fff; font-weight: 650; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .88em;
+    }
+
+    p code, li code, td code {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: var(--accent);
+    }
+
+    /* ---------- code blocks ---------- */
+
+    .code {
+      position: relative;
+      background: #12151d;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-2);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 15px 17px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #d7dbe6;
+      tab-size: 2;
+    }
+
+    .copy {
+      font: inherit;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+
+    .copy:hover { color: var(--text); border-color: #3a4152; }
+
+    /* ---------- callouts ---------- */
+
+    .note, .warn {
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 20px 0;
+    }
+
+    .note { background: #131c26; border: 1px solid #24405a; }
+    .warn { background: #241d0f; border: 1px solid #4a3a1a; }
+
+    .note b, .warn b { display: block; margin-bottom: 4px; font-size: 14px; }
+    .note b { color: var(--blue); }
+    .warn b { color: var(--warn); }
+
+    .note p, .warn p { margin: 0; color: #cfd4e0; font-size: 15px; }
+
+    /* ---------- example cards ---------- */
+
+    .ex {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      margin: 18px 0;
+    }
+
+    .ex-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .ex-num {
+      flex: 0 0 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #06231a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .ex h3 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: -.2px;
+      font-weight: 700;
+    }
+
+    .ex .why { color: #cfd4e0; font-size: 14.5px; margin: 0 0 4px; }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button.run {
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      border-radius: 9px;
+      padding: 8px 14px;
+      cursor: pointer;
+      border: 1px solid #1f4a37;
+      background: #10241c;
+      color: var(--accent);
+      transition: border-color .15s;
+    }
+
+    button.run:hover { border-color: var(--accent); }
+
+    button.run:disabled { opacity: .5; cursor: progress; }
+
+    .summary { font-size: 13px; color: var(--muted); }
+
+    .summary.ok { color: var(--accent); }
+    .summary.bad { color: var(--danger); }
+
+    .out {
+      margin: 12px 0 0;
+      background: #12151d;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #cfd4e0;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .out:empty { display: none; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 14.5px;
+      margin: 18px 0;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    thead th {
+      background: var(--panel-2);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    tbody td:first-child { color: var(--accent); }
+
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+      padding-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 620px) {
+      h1 { font-size: 29px; }
+      .hero { padding-top: 44px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header class="hero">
+      <div class="kicker">Supabase &middot; Reading data</div>
+      <h1>Ways to read data with <em>JavaScript</em></h1>
+      <p class="lede">
+        One pattern, ten variations. Every call asks a table for rows and hands you back
+        <code>data</code> and <code>error</code> — the only thing that changes is what you ask for.
+        Every example below runs for real, so press the buttons and watch what comes back.
+      </p>
+    </header>
+
+    <!-- ============ the pattern ============ -->
+    <section>
+      <div class="sec-label">Start here</div>
+      <h2>The shape of every call</h2>
+
+      <p>
+        This is the same call your <code>getCountries.html</code> page uses. Four pieces, and they
+        always come in this order:
+      </p>
+
+      <div class="code" data-lang="JavaScript">
+<pre><code>const result = await db
+    .from('countries')      // 1. which table
+    .select('code, name')   // 2. which columns
+    .order('name');         // 3. any instructions (this one sorts A-Z)
+
+const data  = result.data;   // 4. the rows, or null if something broke
+const error = result.error;  //    null if it worked, or what went wrong</code></pre>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Piece</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>.from('countries')</code></td><td>Picks the table. This is the only required part.</td></tr>
+            <tr><td><code>.select('code, name')</code></td><td>Picks the columns. <code>'*'</code> means "all of them".</td></tr>
+            <tr><td><code>.order()</code> <code>.limit()</code> <code>.eq()</code></td><td>Extra instructions. Chain as many as you like.</td></tr>
+            <tr><td><code>await</code></td><td>Waits for the reply before carrying on. Without it you get a Promise, not rows.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <b>Always check <code>error</code> before you use <code>data</code></b>
+        <p>
+          Supabase never throws an exception at you. When a call fails, <code>data</code> is
+          <code>null</code>, so <code>data.forEach(...)</code> would crash. Check the error first,
+          then use the rows.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ examples ============ -->
+    <section>
+      <div class="sec-label">Examples</div>
+      <h2>Ten things you can ask for</h2>
+      <p>
+        Each one runs against the real database — <code>countries</code> has 20 rows and
+        <code>students</code> has 7. Press <strong>Run it</strong> to see the actual reply.
+      </p>
+
+      <div id="examples"></div>
+    </section>
+
+    <!-- ============ the where clause ============ -->
+    <section>
+      <div class="sec-label">The missing keyword</div>
+      <h2>So where's the WHERE?</h2>
+
+      <p>
+        You may have noticed that the word <code>WHERE</code> never appears in any of this
+        JavaScript. It is there all the same — <strong>the filters are the WHERE clause</strong>.
+        Every <code>.eq()</code>, <code>.ilike()</code> or <code>.gt()</code> you chain on becomes
+        one condition, and the client writes the SQL for you.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>JavaScript</th><th>The SQL it turns into</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>.eq('code', 'NZ')</code></td><td><code>WHERE code = 'NZ'</code></td></tr>
+          <tr><td><code>.neq('code', 'NZ')</code></td><td><code>WHERE code &lt;&gt; 'NZ'</code></td></tr>
+          <tr><td><code>.gt('id', 5)</code></td><td><code>WHERE id &gt; 5</code></td></tr>
+          <tr><td><code>.gte()</code> <code>.lt()</code> <code>.lte()</code></td><td><code>&gt;=</code> &nbsp; <code>&lt;</code> &nbsp; <code>&lt;=</code></td></tr>
+          <tr><td><code>.like('name', '%land%')</code></td><td><code>WHERE name LIKE '%land%'</code></td></tr>
+          <tr><td><code>.ilike('name', '%land%')</code></td><td><code>WHERE name ILIKE '%land%'</code> &nbsp;— ignores capitals</td></tr>
+          <tr><td><code>.in('code', ['NZ','AU'])</code></td><td><code>WHERE code IN ('NZ','AU')</code></td></tr>
+          <tr><td><code>.is('country_code', null)</code></td><td><code>WHERE country_code IS NULL</code></td></tr>
+          <tr><td><code>.not('course', 'eq', 'Fashion')</code></td><td><code>WHERE NOT (course = 'Fashion')</code></td></tr>
+          <tr><td><code>.or('a.eq.1,b.eq.2')</code></td><td><code>WHERE a = 1 OR b = 2</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <b>Chaining filters means AND</b>
+        <p>
+          <code>.ilike('campus','Wellington%').eq('course','Fashion')</code> becomes
+          <code>WHERE campus ILIKE 'Wellington%' AND course = 'Fashion'</code>. Every filter you add
+          makes the list shorter, never longer — to widen it you need <code>.or()</code>.
+        </p>
+      </div>
+
+      <div class="note">
+        <b>You can watch the WHERE go past</b>
+        <p>
+          Open DevTools &rarr; <strong>Network</strong>, run any example, then click the request it
+          made. The address ends in <code>?select=code%2Cname&amp;code=eq.NZ</code> — and that
+          <code>code=eq.NZ</code> is the <code>WHERE code = 'NZ'</code>, on its way to the database.
+        </p>
+      </div>
+
+      <div class="warn">
+        <b>Why can't I just write my own SQL?</b>
+        <p>
+          Because a browser must never be able to send whatever SQL it likes — that would be a
+          serious hole. These filter methods are a small, safe vocabulary. Raw SQL from the browser
+          is exactly what RPC is for, which you have already covered.
+        </p>
+      </div>
+
+      <div id="where-examples"></div>
+    </section>
+
+    <!-- ============ combining ============ -->
+    <section>
+      <div class="sec-label">Putting it together</div>
+      <h2>Chain them up</h2>
+
+      <p>
+        The instructions chain, and each one narrows things a bit more. Read it like a sentence:
+        <em>"from students, give me name and course, only where the campus starts with Wellington,
+        sorted by name, first 5."</em>
+      </p>
+
+      <div class="code" data-lang="JavaScript">
+<pre><code>const result = await db
+    .from('students')
+    .select('name, course')
+    .ilike('campus', 'Wellington%')
+    .order('name')
+    .limit(5);</code></pre>
+      </div>
+
+      <div class="warn">
+        <b>Order matters for <code>.select()</code> and filters, but not much else</b>
+        <p>
+          Put <code>.select()</code> straight after <code>.from()</code> to keep things readable.
+          Filters, sorting and limits can follow in any order — the result is the same.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      Same Supabase project as <code>getCountries.html</code>. This page only ever reads — no
+      inserts, no updates, nothing is changed by pressing the buttons.
+    </footer>
+
+  </div>
+
+  <script>
+    /* ------------------------------------------------------------------
+       The same client as getCountries.html
+       ------------------------------------------------------------------ */
+    const db = supabase.createClient(
+      'https://decwucuwqnzrxzbxxifu.supabase.co',
+      'sb_publishable_ONnalS_8pdIUH2Qrsz67CA_z4Wco9I2'
+    );
+
+    /* ------------------------------------------------------------------
+       The examples. Each one has: a title, why you'd use it, the code to
+       show, and a run() that does the real call.
+       ------------------------------------------------------------------ */
+    const EXAMPLES = [
+      {
+        title: 'Everything in the table',
+        why: "The simplest call there is. The star means every column.",
+        code: `const { data, error } = await db
+    .from('countries')
+    .select('*');`,
+        run: () => db.from('countries').select('*')
+      },
+      {
+        title: 'Only the columns you need',
+        why: 'Ask for two columns instead of eight and there is less to download and less to read. This is the exact call getCountries.html makes.',
+        code: `const { data, error } = await db
+    .from('countries')
+    .select('code, name');`,
+        run: () => db.from('countries').select('code, name')
+      },
+      {
+        title: 'Sorted A to Z',
+        why: 'Databases do not promise any particular order until you ask. Add { ascending: false } to flip it to Z to A.',
+        code: `const { data, error } = await db
+    .from('countries')
+    .select('code, name')
+    .order('name');
+
+// Z to A instead:
+//   .order('name', { ascending: false })`,
+        run: () => db.from('countries').select('code, name').order('name')
+      },
+      {
+        title: 'Just the first few',
+        why: 'Handy while you are building a page — grab 3 rows instead of 20 and keep the screen tidy.',
+        code: `const { data, error } = await db
+    .from('countries')
+    .select('code, name')
+    .order('name')
+    .limit(3);`,
+        run: () => db.from('countries').select('code, name').order('name').limit(3)
+      },
+      {
+        title: 'One exact row',
+        why: "eq means equals. Notice it still comes back as an array — add .single() when you know there is only one row, and you get the object on its own.",
+        code: `// as an array of one
+const { data, error } = await db
+    .from('countries')
+    .select('code, name')
+    .eq('code', 'NZ');
+
+// as a single object instead
+const { data, error } = await db
+    .from('countries')
+    .select('code, name')
+    .eq('code', 'NZ')
+    .single();`,
+        run: () => db.from('countries').select('code, name').eq('code', 'NZ').single()
+      },
+      {
+        title: 'A few specific rows',
+        why: "in gives a list of values to match. eq is one value, in is several.",
+        code: `const { data, error } = await db
+    .from('countries')
+    .select('code, name')
+    .in('code', ['NZ', 'AU', 'FJ']);`,
+        run: () => db.from('countries').select('code, name').in('code', ['NZ', 'AU', 'FJ'])
+      },
+      {
+        title: 'Search inside text',
+        why: "ilike means \"contains, ignoring capitals\". The % signs stand for \"anything here\", so %land% returns New Zealand, Cook Islands and Ireland — Cook Islands catches people out, because the land is hiding inside the word Islands.",
+        code: `const { data, error } = await db
+    .from('countries')
+    .select('code, name')
+    .ilike('name', '%land%');   // NZ, CK, IE`,
+        run: () => db.from('countries').select('code, name').ilike('name', '%land%')
+      },
+      {
+        title: 'Count them, without downloading them',
+        why: "head: true means \"just tell me how many, do not send the rows\". Much lighter than fetching everything and counting in JavaScript.",
+        code: `const { count, error } = await db
+    .from('countries')
+    .select('*', { count: 'exact', head: true });
+
+console.log(count);   // 20`,
+        run: () => db.from('countries').select('*', { count: 'exact', head: true })
+      },
+      {
+        title: 'eq is fussy about capitals — ilike is not',
+        why: "This is the one that catches everybody out. The students table really does contain both 'Fashion' and 'fashion'. Press both buttons and compare.",
+        code: `// eq: exact match, capitals included  -> 1 row
+const { data, error } = await db
+    .from('students')
+    .select('name, course')
+    .eq('course', 'Fashion');
+
+// ilike: ignores capitals  -> 2 rows
+const { data, error } = await db
+    .from('students')
+    .select('name, course')
+    .ilike('course', 'fashion');`,
+        buttons: [
+          {
+            label: "Run eq('Fashion')",
+            run: () => db.from('students').select('name, course').eq('course', 'Fashion')
+          },
+          {
+            label: "Run ilike('fashion')",
+            run: () => db.from('students').select('name, course').ilike('course', 'fashion')
+          }
+        ]
+      },
+      {
+        title: 'Starts with, and paging through results',
+        why: "Wellington% matches every campus beginning with Wellington. range(0, 2) takes the first three rows and range(3, 5) takes the next three — that is how you build a \"next page\" button. Always sort before you page, or rows can repeat or get skipped.",
+        code: `// starts with Wellington  -> 3 rows
+const { data, error } = await db
+    .from('students')
+    .select('name, campus')
+    .ilike('campus', 'Wellington%');
+
+// page 1: sort first, then take rows 0, 1, 2
+const { data, error } = await db
+    .from('students')
+    .select('name, campus')
+    .order('name')
+    .range(0, 2);
+
+// page 2: the next three, rows 3, 4, 5
+const { data, error } = await db
+    .from('students')
+    .select('name, campus')
+    .order('name')
+    .range(3, 5);`,
+        buttons: [
+          {
+            label: 'First three',
+            run: () => db.from('students').select('name, campus').order('name').range(0, 2)
+          },
+          {
+            label: 'Next three',
+            run: () => db.from('students').select('name, campus').order('name').range(3, 5)
+          }
+        ]
+      }
+    ];
+
+    /* ------------------------------------------------------------------
+       Filters are the WHERE clause. These ones finish the page, and each
+       shows the SQL it stands for.
+       ------------------------------------------------------------------ */
+    const WHERE_EXAMPLES = [
+      {
+        title: 'Greater than',
+        why: "gt means greater than. There is also gte, lt and lte. In SQL this is WHERE id > 5.",
+        code: `const { data, error } = await db
+    .from('students')
+    .select('id, name')
+    .gt('id', 5);        // WHERE id > 5`,
+        run: () => db.from('students').select('id, name').gt('id', 5).order('id')
+      },
+      {
+        title: 'NOT — everything except',
+        why: "not reverses whatever filter you give it. Every student comes back except the one on the Fashion course.",
+        code: `const { data, error } = await db
+    .from('students')
+    .select('name, course')
+    .not('course', 'eq', 'Fashion');
+    // WHERE NOT (course = 'Fashion')`,
+        run: () => db.from('students').select('name, course').not('course', 'eq', 'Fashion').order('name')
+      },
+      {
+        title: 'OR — either one will do',
+        why: "Filters you chain together are joined with AND. To get an OR you have to ask for it by name with .or(), writing the conditions inside one string.",
+        code: `const { data, error } = await db
+    .from('students')
+    .select('name, course, campus')
+    .or('course.eq.Fashion,campus.eq.Auckland');
+    // WHERE course = 'Fashion' OR campus = 'Auckland'`,
+        run: () => db.from('students').select('name, course, campus')
+          .or('course.eq.Fashion,campus.eq.Auckland').order('name')
+      },
+      {
+        title: 'Two filters at once is AND',
+        why: "Press both buttons and compare: Wellington on its own finds 3 students, but Wellington AND Fashion finds only 1. Each filter narrows what is left.",
+        code: `const { data, error } = await db
+    .from('students')
+    .select('name, course, campus')
+    .ilike('campus', 'Wellington%')
+    .eq('course', 'Fashion');
+    // WHERE campus ILIKE 'Wellington%' AND course = 'Fashion'`,
+        buttons: [
+          {
+            label: 'Wellington only',
+            run: () => db.from('students').select('name, course, campus')
+              .ilike('campus', 'Wellington%').order('name')
+          },
+          {
+            label: '+ AND Fashion',
+            run: () => db.from('students').select('name, course, campus')
+              .ilike('campus', 'Wellington%').eq('course', 'Fashion')
+          }
+        ]
+      }
+    ];
+
+    /* ------------------------------------------------------------------
+       Draw the example cards
+       ------------------------------------------------------------------ */
+    function renderExamples(box, list, startNumber) {
+      list.forEach((ex, i) => {
+        const card = document.createElement('div');
+        card.className = 'ex';
+
+        // --- heading ---
+        const head = document.createElement('div');
+        head.className = 'ex-head';
+
+        const num = document.createElement('span');
+        num.className = 'ex-num';
+        num.textContent = String(startNumber + i);
+
+        const h3 = document.createElement('h3');
+        h3.textContent = ex.title;
+
+        head.append(num, h3);
+
+        // --- explanation ---
+        const why = document.createElement('p');
+        why.className = 'why';
+        why.textContent = ex.why;
+
+        // --- code ---
+        const codeBox = document.createElement('div');
+        codeBox.className = 'code';
+        codeBox.dataset.lang = 'JavaScript';
+
+        const codeHead = document.createElement('div');
+        codeHead.className = 'code-head';
+
+        const label = document.createElement('span');
+        label.textContent = 'JavaScript';
+
+        const copy = document.createElement('button');
+        copy.className = 'copy';
+        copy.type = 'button';
+        copy.textContent = 'Copy';
+
+        const pre = document.createElement('pre');
+        const codeEl = document.createElement('code');
+        codeEl.textContent = ex.code;
+        pre.append(codeEl);
+
+        copy.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(ex.code);
+            copy.textContent = 'Copied';
+          } catch (e) {
+            copy.textContent = 'Ctrl+C';
+          }
+          setTimeout(() => { copy.textContent = 'Copy'; }, 1500);
+        });
+
+        codeHead.append(label, copy);
+        codeBox.append(codeHead, pre);
+
+        // --- buttons (one per action, or a single "Run it") ---
+        const controls = document.createElement('div');
+        controls.className = 'controls';
+
+        const summary = document.createElement('span');
+        summary.className = 'summary';
+
+        const out = document.createElement('pre');
+        out.className = 'out';
+
+        const actions = ex.buttons || [{ label: 'Run it', run: ex.run }];
+
+        actions.forEach(action => {
+          const btn = document.createElement('button');
+          btn.className = 'run';
+          btn.type = 'button';
+          btn.textContent = action.label;
+
+          btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            summary.className = 'summary';
+            summary.textContent = 'asking the database...';
+            out.textContent = '';
+
+            const result = await action.run();
+
+            btn.disabled = false;
+
+            const data = result.data;
+            const error = result.error;
+            const count = result.count;
+
+            if (error) {
+              summary.className = 'summary bad';
+              summary.textContent = 'error: ' + error.message;
+              out.textContent = error.message;
+              return;
+            }
+
+            // head:true sends a count and no rows at all
+            if (typeof count === 'number') {
+              summary.className = 'summary ok';
+              summary.textContent = 'count = ' + count + ' (no rows were downloaded)';
+              out.textContent = JSON.stringify({ count: count }, null, 2);
+              return;
+            }
+
+            if (Array.isArray(data)) {
+              summary.className = 'summary ok';
+              summary.textContent = data.length + (data.length === 1 ? ' row came back' : ' rows came back');
+            } else {
+              summary.className = 'summary ok';
+              summary.textContent = 'one object came back (thanks to .single())';
+            }
+
+            out.textContent = JSON.stringify(data, null, 2);
+          });
+
+          controls.append(btn);
+        });
+
+        controls.append(summary);
+
+      card.append(head, why, codeBox, controls, out);
+        box.append(card);
+      });
+    }
+
+    renderExamples(document.getElementById('examples'), EXAMPLES, 1);
+    renderExamples(document.getElementById('where-examples'), WHERE_EXAMPLES, 1);
+  </script>
+</body>
+
+</html>

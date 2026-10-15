@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Cards — add one</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg: #0e1016;
+      --panel: #161922;
+      --panel-2: #1d212c;
+      --border: #272c38;
+
+      --text: #e7e9ef;
+      --muted: #969db0;
+
+      --accent: #3ecf8e;
+      --blue: #7cc4ff;
+
+      --warn: #ffc457;
+      --danger: #ff7b7b;
+
+      --measure: 860px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: var(--measure);
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+
+    /* ---------- header ---------- */
+
+    header {
+      padding: 56px 0 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #10241c;
+      border: 1px solid #1f4a37;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 34px;
+      letter-spacing: -.9px;
+      margin: 0 0 10px;
+      font-weight: 800;
+    }
+
+    .lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+    h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 36px 0 14px;
+    }
+
+    /* ---------- who's logged in ---------- */
+
+    .whoami {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 22px;
+    }
+
+    .whoami strong { color: var(--text); }
+
+    a.btn-link {
+      margin-left: auto;
+      font-size: 14px;
+      font-weight: 650;
+      color: #06231a;
+      background: var(--accent);
+      border-radius: 9px;
+      padding: 7px 13px;
+      text-decoration: none;
+    }
+
+    /* ---------- form ---------- */
+
+    .form-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      gap: 16px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 11px 13px;
+      font: inherit;
+      font-size: 15px;
+    }
+
+    input::placeholder { color: #5f6675; }
+
+    input:focus {
+      outline: 2px solid #1f4a37;
+      outline-offset: 1px;
+      border-color: #2f6b4f;
+    }
+
+    input[type="file"] {
+      background: var(--panel-2);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      padding: 10px 12px;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button {
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 6px 11px;
+      cursor: pointer;
+    }
+
+    .opt {
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 600;
+      opacity: .75;
+    }
+
+    .preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .preview img {
+      width: 44px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .hint { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+
+    button.primary {
+      width: 100%;
+      margin-top: 18px;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #06231a;
+      padding: 12px 14px;
+    }
+
+    button.primary:disabled { opacity: .55; cursor: progress; }
+
+    /* ---------- status ---------- */
+
+    .status {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 16px;
+      min-height: 22px;
+    }
+
+    .pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .pill.ok   { color: var(--accent); border-color: #1f4a37; background: #10241c; }
+    .pill.bad  { color: var(--danger); border-color: #5a262a; background: #241416; }
+    .pill.warn { color: var(--warn); border-color: #4a3a1a; background: #241d0f; }
+
+    /* ---------- setup callout ---------- */
+
+    .setup {
+      background: #241d0f;
+      border: 1px solid #4a3a1a;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #cfd4e0;
+    }
+
+    .setup b { display: block; color: var(--warn); margin-bottom: 6px; }
+    .setup p { margin: 0 0 8px; }
+    .setup p:last-child { margin: 0; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .9em;
+      color: var(--accent);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 5px;
+    }
+
+    /* ---------- the card grid ---------- */
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 18px;
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card .shot {
+      /* matches the jersey photo's own shape, so nothing gets cropped away */
+      aspect-ratio: 423 / 481;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .card .shot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card .shot .missing {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 12px;
+    }
+
+    .card .body {
+      padding: 12px 14px 14px;
+    }
+
+    .card .top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card .info { flex: 1; min-width: 0; }
+
+    .card .title {
+      font-size: 14.5px;
+      font-weight: 650;
+      line-height: 1.35;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .card .by {
+      margin: 4px 0 0;
+      font-size: 11px;
+      letter-spacing: .04em;
+      color: var(--muted);
+    }
+
+    .card .price {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .card .size {
+      width: 100%;
+      margin-top: 12px;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #06231a;
+      background: var(--accent);
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14.5px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 26px;
+      text-align: center;
+    }
+
+    .footnote {
+      margin-top: 18px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 620px) {
+      .fields { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header>
+      <div class="kicker">Supabase &middot; Insert</div>
+      <h1>Add a shop card</h1>
+      <p class="lede">
+        Fill in the form and it goes straight into the <code>products</code> table. Everything
+        saved comes back underneath, so you can see the round trip happen.
+      </p>
+    </header>
+
+    <!-- ---------- who is logged in ---------- -->
+    <div class="whoami" id="whoami">
+      <span id="whoami-text">Checking whether you're logged in...</span>
+      <a class="btn-link" id="login-link" href="login.html" hidden>Log in</a>
+    </div>
+
+    <!-- ---------- setup notice (table missing) ---------- -->
+    <div class="setup" id="setup" hidden>
+      <b>The products table doesn't exist yet</b>
+      <p>
+        Open the Supabase dashboard for <code>pkpbzthkwskkudqogyrl</code> &rarr; <strong>SQL
+        Editor</strong>, paste everything from <code>products.sql</code> and press Run.
+      </p>
+      <p>That creates the table and the two policies this page needs. Then reload this page.</p>
+    </div>
+
+    <!-- ---------- the form ---------- -->
+    <form class="form-card" id="form" hidden>
+      <div class="fields">
+        <div class="full">
+          <label for="title">Title</label>
+          <input id="title" type="text" placeholder="Juventus 1984-85 Retro Football Shirt" required>
+        </div>
+
+        <div>
+          <label for="price">Price</label>
+          <input id="price" type="number" min="0" step="0.01" value="64.00" required>
+        </div>
+
+        <div class="full">
+          <label for="photo">Photo &mdash; upload one</label>
+          <input id="photo" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif">
+          <p class="hint">
+            Goes into the <code>assets</code> bucket. Images only, up to 5&nbsp;MB. Skip it and the
+            card falls back to the URL below.
+          </p>
+          <div class="preview" id="preview" hidden>
+            <img id="preview-img" alt="">
+            <span id="preview-name"></span>
+          </div>
+        </div>
+
+        <div class="full">
+          <label for="image">Image URL <span class="opt">or use this instead</span></label>
+          <input id="image" type="text" value="images/juventus_jersey_only.png">
+          <p class="hint">
+            A web address (<code>https://...</code>) or a path inside this folder. Leave it empty
+            and the card shows a placeholder.
+          </p>
+        </div>
+      </div>
+
+      <button class="primary" id="submit" type="submit">Add card</button>
+
+      <div class="status">
+        <span class="pill" id="pill">idle</span>
+        <span id="status-text">Nothing saved yet.</span>
+      </div>
+    </form>
+
+    <!-- ---------- the cards ---------- -->
+    <h2>Cards in the database</h2>
+    <div class="grid" id="grid"></div>
+    <p class="empty" id="empty" hidden>No cards yet. Add the first one above.</p>
+
+    <p class="footnote">
+      The <strong>Choose Size</strong> button is decoration — sizes aren't a column yet. Add one to
+      <code>products.sql</code> when you want it to do something.
+    </p>
+
+  </div>
+
+  <script>
+    /* ------------------------------------------------------------------
+       Same project as login.html / signup.html, so accounts are shared.
+       ------------------------------------------------------------------ */
+    const db = supabase.createClient(
+      'https://pkpbzthkwskkudqogyrl.supabase.co',
+      'sb_publishable_MOHaPhKPaA_4Gb7ZMgxQgg_I4YNNk_w'
+    );
+
+    const form = document.getElementById('form');
+    const whoamiText = document.getElementById('whoami-text');
+    const loginLink = document.getElementById('login-link');
+    const setupBox = document.getElementById('setup');
+    const grid = document.getElementById('grid');
+    const emptyMsg = document.getElementById('empty');
+    const submitBtn = document.getElementById('submit');
+    const pill = document.getElementById('pill');
+    const statusText = document.getElementById('status-text');
+
+    let currentUser = null;
+
+    function setStatus(kind, text) {
+      const labels = { ok: 'saved', bad: 'error', warn: 'heads up' };
+      pill.className = 'pill' + (kind ? ' ' + kind : '');
+      pill.textContent = labels[kind] || 'idle';
+      statusText.textContent = text;
+    }
+
+    /* ------------------------------------------------------------------
+       1. Who is looking at the page?
+       ------------------------------------------------------------------ */
+    function applyUser(user) {
+      currentUser = user;
+
+      if (user) {
+        whoamiText.textContent = '';
+        const strong = document.createElement('strong');
+        strong.textContent = user.email;
+        whoamiText.append('Logged in as ', strong, ' — new cards are marked with your account.');
+        loginLink.hidden = true;
+        form.hidden = false;
+      } else {
+        whoamiText.textContent = 'You need to be logged in to add a card. Reading the cards below works either way.';
+        loginLink.hidden = false;
+        form.hidden = true;
+      }
+    }
+
+    /* ------------------------------------------------------------------
+       2. Read every card, newest first
+       ------------------------------------------------------------------ */
+    async function loadCards() {
+      const { data, error } = await db
+        .from('products')
+        .select('id, title, price, image_url, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        // PGRST205 = "I don't know that table" — the SQL hasn't been run yet.
+        if (error.code === 'PGRST205' || /could not find the table/i.test(error.message)) {
+          setupBox.hidden = false;
+          grid.innerHTML = '';
+          emptyMsg.hidden = true;
+        } else {
+          setStatus('bad', error.message);
+        }
+        return;
+      }
+
+      setupBox.hidden = true;
+      drawCards(data || []);
+    }
+
+    function drawCards(rows) {
+      grid.innerHTML = '';
+      emptyMsg.hidden = rows.length > 0;
+
+      rows.forEach(row => {
+        const card = document.createElement('article');
+        card.className = 'card';
+
+        // --- picture ---
+        const shot = document.createElement('div');
+        shot.className = 'shot';
+
+        if (row.image_url) {
+          const img = document.createElement('img');
+          img.src = row.image_url;
+          img.alt = row.title;
+          // If the link is broken, say so instead of showing a broken icon.
+          img.addEventListener('error', () => {
+            shot.innerHTML = '';
+            const missing = document.createElement('div');
+            missing.className = 'missing';
+            missing.textContent = 'Image not found';
+            shot.append(missing);
+          });
+          shot.append(img);
+        } else {
+          const none = document.createElement('div');
+          none.className = 'missing';
+          none.textContent = 'No image';
+          shot.append(none);
+        }
+
+        // --- text ---
+        const body = document.createElement('div');
+        body.className = 'body';
+
+        const top = document.createElement('div');
+        top.className = 'top';
+
+        const info = document.createElement('div');
+        info.className = 'info';
+
+        const title = document.createElement('h3');
+        title.className = 'title';
+        title.textContent = row.title;      // textContent, never innerHTML — keeps user text as text
+
+        const by = document.createElement('p');
+        by.className = 'by';
+        by.textContent = new Date(row.created_at).toLocaleDateString();
+
+        info.append(title, by);
+
+        const price = document.createElement('div');
+        price.className = 'price';
+        price.textContent = '$' + Number(row.price).toFixed(2);
+
+        const size = document.createElement('button');
+        size.className = 'size';
+        size.type = 'button';
+        size.textContent = 'Choose Size';
+
+        top.append(info, price);
+        body.append(top, size);
+        card.append(shot, body);
+        grid.append(card);
+      });
+    }
+
+    /* ------------------------------------------------------------------
+       3. Add a card — upload the photo first, then save the row
+       ------------------------------------------------------------------ */
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif', 'image/avif'];
+    const MAX_BYTES = 5 * 1024 * 1024;   // 5 MB, same as the bucket's limit
+
+    async function uploadPhoto(file) {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        return { error: 'That file type is not allowed. Use a PNG, JPEG, WebP, GIF or AVIF image.' };
+      }
+
+      if (file.size > MAX_BYTES) {
+        return { error: 'That picture is ' + (file.size / 1024 / 1024).toFixed(1) + ' MB. The limit is 5 MB.' };
+      }
+
+      // Keep the name tidy, then put it in this user's own folder. The storage
+      // policy only accepts uploads whose first folder is the user's id.
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = currentUser.id + '/' + Date.now() + '-' + safeName;
+
+      const { error } = await db.storage
+        .from('assets')
+        .upload(path, file, { contentType: file.type });
+
+      if (error) return { error: error.message };
+
+      const { data } = db.storage.from('assets').getPublicUrl(path);
+      return { url: data.publicUrl };
+    }
+
+    async function addCard(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('title').value.trim();
+      const price = Number(document.getElementById('price').value);
+      const file = document.getElementById('photo').files[0];
+      let imageUrl = document.getElementById('image').value.trim();
+
+      if (!title) {
+        setStatus('bad', 'The title is required.');
+        return;
+      }
+
+      if (!Number.isFinite(price) || price < 0) {
+        setStatus('bad', 'The price needs to be a number of 0 or more.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+
+      // 1) If they chose a file, upload it and use the public address it returns.
+      if (file) {
+        setStatus('', 'Uploading ' + file.name + '...');
+
+        const uploaded = await uploadPhoto(file);
+
+        if (uploaded.error) {
+          submitBtn.disabled = false;
+          setStatus('bad', 'Upload failed: ' + uploaded.error);
+          return;
+        }
+
+        imageUrl = uploaded.url;
+      }
+
+      setStatus('', 'Saving...');
+
+      // Note: created_by is NOT sent. The table fills it in with auth.uid(),
+      // and the policy refuses the row if it doesn't match who's logged in.
+      const { error } = await db.from('products').insert({
+        title: title,
+        price: price,
+        image_url: imageUrl || null
+      });
+
+      submitBtn.disabled = false;
+
+      if (error) {
+        setStatus('bad', error.message);
+        return;
+      }
+
+      form.reset();
+      clearPreview();          // form.reset() can't empty a file input's preview
+      setStatus('ok', 'Saved "' + title + '" ($' + price.toFixed(2) + ').');
+      await loadCards();
+    }
+
+    /* ------------------------------------------------------------------
+       4. Show a thumbnail of the picture they picked, before uploading
+       ------------------------------------------------------------------ */
+    const photoInput = document.getElementById('photo');
+    const previewBox = document.getElementById('preview');
+    const previewImg = document.getElementById('preview-img');
+    const previewName = document.getElementById('preview-name');
+
+    function clearPreview() {
+      previewBox.hidden = true;
+      previewImg.removeAttribute('src');
+      previewName.textContent = '';
+    }
+
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files[0];
+
+      if (!file) {
+        clearPreview();
+        return;
+      }
+
+      previewName.textContent = file.name + ' — ' + (file.size / 1024).toFixed(0) + ' KB';
+      previewImg.src = URL.createObjectURL(file);
+      previewBox.hidden = false;
+
+      // Warn early rather than making them wait for a failed upload.
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        setStatus('bad', 'That file type is not allowed. Use PNG, JPEG, WebP, GIF or AVIF.');
+      } else if (file.size > MAX_BYTES) {
+        setStatus('bad', 'That picture is over 5 MB. Pick a smaller one.');
+      } else {
+        setStatus('', 'Ready to upload ' + file.name + '.');
+      }
+    });
+
+    /* ------------------------------------------------------------------
+       5. Wire it up
+       ------------------------------------------------------------------ */
+    form.addEventListener('submit', addCard);
+
+    db.auth.onAuthStateChange((event, session) => {
+      applyUser(session ? session.user : null);
+    });
+
+    (async function start() {
+      const { data } = await db.auth.getSession();
+      applyUser(data.session ? data.session.user : null);
+      await loadCards();
+    })();
+  </script>
+</body>
+
+</html>

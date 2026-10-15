@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up — with country</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+
+    <style>
+        body {
+            background-color: antiquewhite;
+            margin: 0;
+            min-height: 100vh;
+            font: small monospace, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: start;
+            margin-top: 0.66rem;
+            gap: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            border: 1px solid #5f6675;
+            border-radius: 10px;
+            padding: 11px 13px;
+            font: inherit;
+            font-size: 15px;
+            margin-bottom: 16px;
+            background-color: white;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        input::placeholder {
+            color: #a8a9aa;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #3bdf25;
+            outline-offset: 1px;
+        }
+
+        header {
+            padding: 1rem;
+            background-color: #5f6675;
+            color: snow;
+        }
+
+        hr {
+            width: 90%;
+            background-color: black;
+            border: 0;
+            height: 1px;
+        }
+
+        button {
+            font: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 9px 16px;
+            border-radius: 10px;
+            border: 1px solid #5f6675;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        button.primary {
+            background-color: #3bdf25;
+            border-color: #3bdf25;
+            color: #10300a;
+        }
+
+        button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .signup-results ul {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+        }
+
+        .info ul {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px;
+            padding: 0 8px;
+            margin: 0;
+            list-style-type: none;
+        }
+
+        .info ul p {
+            margin-bottom: 4px;
+            color: crimson;
+            margin-top: 0;
+        }
+
+        .hint {
+            font-size: 12px;
+            margin: -10px 0 14px;
+            color: #6b6f78;
+        }
+
+        .setup {
+            background-color: #fff3cd;
+            border: 1px solid #d9b64a;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 13px;
+            max-width: 340px;
+        }
+
+        .setup b {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .setup p {
+            margin: 0 0 6px;
+        }
+
+        .setup p:last-child {
+            margin-bottom: 0;
+        }
+
+        code {
+            background-color: #ffffff;
+            border: 1px solid #d6d3cc;
+            border-radius: 5px;
+            padding: 1px 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h3>My Great App:</h3>
+    </header>
+
+    <div class="wrapper">
+
+        <section>
+            <label for="country">Country of residence:</label>
+            <select autocomplete="on" id="country" style="min-width: 250px;">
+                <option value=""></option>
+            </select>
+
+            <div>
+                <button class="primary" onclick="loadCountries()" type="button">Load Countries</button>
+
+            </div>
+            </form>
+
+        </section>
+
+        <hr />
+        <div class="info">
+            <ul>
+                <li>
+                    <p>createClient():</p>const db = supabase.createClient(
+                    SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+                    );
+                </li>
+                <li>
+                    <p>loadCountries():</p>const result = await db.from('countries').select('code, name').order('name');
+                </li>
+
+
+            </ul>
+        </div>
+
+
+        <hr />
+
+
+    </div>
+
+
+    <script>
+        const SUPABASE_URL = 'https://decwucuwqnzrxzbxxifu.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ONnalS_8pdIUH2Qrsz67CA_z4Wco9I2';
+
+        // db is now a global
+        const db = supabase.createClient(
+            SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
+        );
+    </script>
+
+
+
+    <script>
+        const theForm = document.getElementById('form');
+        const countrySelect = document.getElementById('country');
+        const setupBox = document.getElementById('setup');
+        const resultsList = document.getElementById('results');
+
+
+
+        // ------------------------------------------------------------------
+        //  Fill the country dropdown from the countries table
+        // ------------------------------------------------------------------
+        async function loadCountries() {
+
+            // a network call, so make it await. Asynchronous.
+            const result = await db
+                .from('countries')
+                .select('code, name')
+                .order('name');
+
+
+            // for console debug, view the data...
+            //window.debugResult = result;
+
+            let data = result.data;
+            let error = result.error;
+
+
+
+            if (error) {
+                countrySelect.innerHTML = '<option value="">Countries unavailable</option>';
+                console.log('Could not load countries:', error.message);
+                return;
+            }
+
+
+            countrySelect.innerHTML = '<option value="">Choose your country...</option>';
+
+            data.forEach(function (row) {
+                const option = document.createElement('option');
+                option.value = row.code;         // we store the short code: NZ
+                option.textContent = row.name;   // but show the full name
+                countrySelect.append(option);
+            });
+        }
+
+    </script>
+
+</body>
+
+</html>

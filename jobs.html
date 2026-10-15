@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Board — post a job</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg: #0e1016;
+      --panel: #161922;
+      --panel-2: #1d212c;
+      --border: #272c38;
+
+      --text: #e7e9ef;
+      --muted: #969db0;
+
+      --accent: #3ecf8e;
+      --blue: #7cc4ff;
+
+      --warn: #ffc457;
+      --danger: #ff7b7b;
+
+      --measure: 860px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: var(--measure);
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+
+    header {
+      padding: 56px 0 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #10241c;
+      border: 1px solid #1f4a37;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 34px;
+      letter-spacing: -.9px;
+      margin: 0 0 10px;
+      font-weight: 800;
+    }
+
+    .lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+    h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 36px 0 14px;
+    }
+
+    /* ---------- who's logged in ---------- */
+
+    .whoami {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 22px;
+    }
+
+    .whoami strong { color: var(--text); }
+
+    a.btn-link {
+      margin-left: auto;
+      font-size: 14px;
+      font-weight: 650;
+      color: #06231a;
+      background: var(--accent);
+      border-radius: 9px;
+      padding: 7px 13px;
+      text-decoration: none;
+    }
+
+    /* ---------- form ---------- */
+
+    .form-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 11px 13px;
+      font: inherit;
+      font-size: 15px;
+    }
+
+    textarea { resize: vertical; min-height: 100px; }
+
+    input::placeholder, textarea::placeholder { color: #5f6675; }
+
+    input:focus, textarea:focus, select:focus {
+      outline: 2px solid #1f4a37;
+      outline-offset: 1px;
+      border-color: #2f6b4f;
+    }
+
+    /* the salary pair sits side by side with a dash between */
+    .range {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .range .dash { color: var(--muted); padding-top: 4px; }
+
+    .hint { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+
+    button.primary {
+      width: 100%;
+      margin-top: 18px;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #06231a;
+      padding: 12px 14px;
+    }
+
+    button.primary:disabled { opacity: .55; cursor: progress; }
+
+    /* ---------- status ---------- */
+
+    .status {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 16px;
+      min-height: 22px;
+    }
+
+    .pill {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .pill.ok   { color: var(--accent); border-color: #1f4a37; background: #10241c; }
+    .pill.bad  { color: var(--danger); border-color: #5a262a; background: #241416; }
+    .pill.warn { color: var(--warn); border-color: #4a3a1a; background: #241d0f; }
+
+    /* ---------- setup callout ---------- */
+
+    .setup {
+      background: #241d0f;
+      border: 1px solid #4a3a1a;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #cfd4e0;
+    }
+
+    .setup b { display: block; color: var(--warn); margin-bottom: 6px; }
+    .setup p { margin: 0 0 8px; }
+    .setup p:last-child { margin: 0; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .9em;
+      color: var(--accent);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 5px;
+    }
+
+    /* ---------- the listings ---------- */
+
+    .jobs { display: grid; gap: 14px; }
+
+    .job {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+
+    .job .top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .job h3 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.3px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .job .pay {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .job .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 12px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .job .meta .tag {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
+
+    .job .desc {
+      margin: 0;
+      font-size: 14.5px;
+      color: #cfd4e0;
+      white-space: pre-wrap;   /* keeps the paragraph breaks they typed */
+      overflow-wrap: anywhere;
+    }
+
+    .job .posted {
+      margin: 12px 0 0;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14.5px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 26px;
+      text-align: center;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 620px) {
+      .fields { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header>
+      <div class="kicker">Supabase &middot; Jobs</div>
+      <h1>Post a job</h1>
+      <p class="lede">
+        Fill in the form and the listing goes into the <code>jobs</code> table. Everything posted
+        appears underneath, so you can watch it come back out again.
+      </p>
+    </header>
+
+    <div class="whoami" id="whoami">
+      <span id="whoami-text">Checking whether you're logged in...</span>
+      <a class="btn-link" id="login-link" href="login.html" hidden>Log in</a>
+    </div>
+
+    <div class="setup" id="setup" hidden>
+      <b>The jobs table doesn't exist yet</b>
+      <p>
+        Open the Supabase dashboard for <code>pkpbzthkwskkudqogyrl</code> &rarr; <strong>SQL
+        Editor</strong>, paste everything from <code>jobs.sql</code> and press Run.
+      </p>
+      <p>That creates the table and the two policies this page needs. Then reload this page.</p>
+    </div>
+
+    <!-- ---------- the form ---------- -->
+    <form class="form-card" id="form" hidden>
+      <div class="fields">
+
+        <div class="full">
+          <label for="title">Job title</label>
+          <input id="title" type="text" placeholder="Junior Web Developer" required>
+        </div>
+
+        <div class="full">
+          <label for="description">Job description</label>
+          <textarea id="description" placeholder="What the job involves, who you're looking for, how to apply..." required></textarea>
+        </div>
+
+        <div class="full">
+          <label for="salary-min">Salary range</label>
+          <div class="range">
+            <input id="salary-min" type="number" min="0" step="1000" placeholder="60000" required>
+            <span class="dash">to</span>
+            <input id="salary-max" type="number" min="0" step="1000" placeholder="80000" required>
+          </div>
+          <p class="hint">Whole numbers, e.g. 60000 to 80000.</p>
+        </div>
+
+        <div>
+          <label for="start-date">Start date</label>
+          <input id="start-date" type="date" required>
+        </div>
+
+        <div>
+          <label for="city">City</label>
+          <select id="city" required>
+            <option value="">Choose a city...</option>
+            <optgroup label="New Zealand" id="cities-nz"></optgroup>
+            <optgroup label="Australia" id="cities-au"></optgroup>
+          </select>
+        </div>
+
+      </div>
+
+      <button class="primary" id="submit" type="submit">Post job</button>
+
+      <div class="status">
+        <span class="pill" id="pill">idle</span>
+        <span id="status-text">Nothing posted yet.</span>
+      </div>
+    </form>
+
+    <!-- ---------- the listings ---------- -->
+    <h2>Jobs on the board</h2>
+    <div class="jobs" id="jobs"></div>
+    <p class="empty" id="empty" hidden>No jobs posted yet. Be the first.</p>
+
+  </div>
+
+  <script>
+    /* ------------------------------------------------------------------
+       The same project as login.html / signup.html, so accounts are shared.
+       ------------------------------------------------------------------ */
+    const db = supabase.createClient(
+      'https://pkpbzthkwskkudqogyrl.supabase.co',
+      'sb_publishable_MOHaPhKPaA_4Gb7ZMgxQgg_I4YNNk_w'
+    );
+
+    /* These two lists must match the CHECK list inside jobs.sql.
+       If you add a city there, add it here as well. */
+    const CITIES_NZ = [
+      'Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga', 'Dunedin',
+      'Palmerston North', 'Napier', 'Nelson', 'Queenstown', 'Rotorua', 'Invercargill'
+    ];
+
+    const CITIES_AU = [
+      'Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Gold Coast',
+      'Canberra', 'Newcastle', 'Hobart', 'Darwin', 'Wollongong', 'Geelong',
+      'Cairns', 'Townsville'
+    ];
+
+    const form = document.getElementById('form');
+    const whoamiText = document.getElementById('whoami-text');
+    const loginLink = document.getElementById('login-link');
+    const setupBox = document.getElementById('setup');
+    const jobsBox = document.getElementById('jobs');
+    const emptyMsg = document.getElementById('empty');
+    const submitBtn = document.getElementById('submit');
+    const pill = document.getElementById('pill');
+    const statusText = document.getElementById('status-text');
+
+    let currentUser = null;
+
+    function setStatus(kind, text) {
+      const labels = { ok: 'posted', bad: 'error', warn: 'heads up' };
+      pill.className = 'pill' + (kind ? ' ' + kind : '');
+      pill.textContent = labels[kind] || 'idle';
+      statusText.textContent = text;
+    }
+
+    /* ------------------------------------------------------------------
+       Fill the city dropdown
+       ------------------------------------------------------------------ */
+    function fillCities() {
+      const put = (list, into) => {
+        const box = document.getElementById(into);
+        list.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          box.append(opt);
+        });
+      };
+      put(CITIES_NZ, 'cities-nz');
+      put(CITIES_AU, 'cities-au');
+    }
+
+    /* ------------------------------------------------------------------
+       1. Who is looking at the page?
+       ------------------------------------------------------------------ */
+    function applyUser(user) {
+      currentUser = user;
+
+      if (user) {
+        whoamiText.textContent = '';
+        const strong = document.createElement('strong');
+        strong.textContent = user.email;
+        whoamiText.append('Logged in as ', strong, ' — jobs you post are marked with your account.');
+        loginLink.hidden = true;
+        form.hidden = false;
+      } else {
+        whoamiText.textContent = 'You need to be logged in to post a job. Reading the board below works either way.';
+        loginLink.hidden = false;
+        form.hidden = true;
+      }
+    }
+
+    /* ------------------------------------------------------------------
+       2. Read every job, newest first
+       ------------------------------------------------------------------ */
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-NZ', { maximumFractionDigits: 0 });
+    }
+
+    function prettyDate(value) {
+      // 'YYYY-MM-DD' -> '3 Mar 2026'. Parsed by hand so the timezone
+      // can't shift it back a day.
+      const parts = String(value).split('-');
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    async function loadJobs() {
+      const { data, error } = await db
+        .from('jobs')
+        .select('id, title, description, salary_min, salary_max, start_date, city, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        // PGRST205 = "I don't know that table" — the SQL hasn't been run yet.
+        if (error.code === 'PGRST205' || /could not find the table/i.test(error.message)) {
+          setupBox.hidden = false;
+          jobsBox.innerHTML = '';
+          emptyMsg.hidden = true;
+        } else {
+          setStatus('bad', error.message);
+        }
+        return;
+      }
+
+      setupBox.hidden = true;
+      drawJobs(data || []);
+    }
+
+    function drawJobs(rows) {
+      jobsBox.innerHTML = '';
+      emptyMsg.hidden = rows.length > 0;
+
+      rows.forEach(row => {
+        const card = document.createElement('article');
+        card.className = 'job';
+
+        // --- title and pay ---
+        const top = document.createElement('div');
+        top.className = 'top';
+
+        const h3 = document.createElement('h3');
+        h3.textContent = row.title;   // textContent, never innerHTML
+
+        const pay = document.createElement('div');
+        pay.className = 'pay';
+        pay.textContent = money(row.salary_min) + ' – ' + money(row.salary_max);
+
+        top.append(h3, pay);
+
+        // --- city and start date ---
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+
+        const cityTag = document.createElement('span');
+        cityTag.className = 'tag';
+        cityTag.textContent = row.city;
+
+        const dateTag = document.createElement('span');
+        dateTag.className = 'tag';
+        dateTag.textContent = 'Starts ' + prettyDate(row.start_date);
+
+        meta.append(cityTag, dateTag);
+
+        // --- description ---
+        const desc = document.createElement('p');
+        desc.className = 'desc';
+        desc.textContent = row.description;
+
+        const posted = document.createElement('p');
+        posted.className = 'posted';
+        posted.textContent = 'Posted ' + new Date(row.created_at).toLocaleDateString('en-NZ');
+
+        card.append(top, meta, desc, posted);
+        jobsBox.append(card);
+      });
+    }
+
+    /* ------------------------------------------------------------------
+       3. Post a job
+       ------------------------------------------------------------------ */
+    async function addJob(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const min = Number(document.getElementById('salary-min').value);
+      const max = Number(document.getElementById('salary-max').value);
+      const startDate = document.getElementById('start-date').value;
+      const city = document.getElementById('city').value;
+
+      // Check everything here so the message is friendly. The database
+      // checks it all again anyway — that's the part that really matters.
+      if (!title) return setStatus('bad', 'The job title is required.');
+      if (!description) return setStatus('bad', 'The job description is required.');
+      if (!Number.isFinite(min) || !Number.isFinite(max)) return setStatus('bad', 'Fill in both salary boxes.');
+      if (min < 0 || max < 0) return setStatus('bad', 'Salary cannot be negative.');
+      if (max < min) return setStatus('bad', 'The maximum salary is lower than the minimum.');
+      if (!startDate) return setStatus('bad', 'Pick a start date.');
+      if (!city) return setStatus('bad', 'Choose a city from the list.');
+
+      // Today at midnight, so "today" itself is allowed.
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const chosen = new Date(startDate + 'T00:00:00');
+      if (chosen < today) return setStatus('bad', 'The start date is in the past.');
+
+      submitBtn.disabled = true;
+      setStatus('', 'Posting...');
+
+      // created_by is NOT sent: the table fills it in with auth.uid(),
+      // and the policy refuses the row if it doesn't match who is logged in.
+      const { error } = await db.from('jobs').insert({
+        title: title,
+        description: description,
+        salary_min: min,
+        salary_max: max,
+        start_date: startDate,
+        city: city
+      });
+
+      submitBtn.disabled = false;
+
+      if (error) {
+        setStatus('bad', error.message);
+        return;
+      }
+
+      form.reset();
+      setStatus('ok', 'Posted "' + title + '" in ' + city + '.');
+      await loadJobs();
+    }
+
+    /* ------------------------------------------------------------------
+       4. Wire it up
+       ------------------------------------------------------------------ */
+    form.addEventListener('submit', addJob);
+
+    db.auth.onAuthStateChange((event, session) => {
+      applyUser(session ? session.user : null);
+    });
+
+    (async function start() {
+      fillCities();
+
+      // Default the date picker to a week from today.
+      const soon = new Date();
+      soon.setDate(soon.getDate() + 7);
+      document.getElementById('start-date').value = soon.toISOString().slice(0, 10);
+
+      const { data } = await db.auth.getSession();
+      applyUser(data.session ? data.session.user : null);
+      await loadJobs();
+    })();
+  </script>
+</body>
+
+</html>
